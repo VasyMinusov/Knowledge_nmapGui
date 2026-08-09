@@ -1,20 +1,24 @@
+// src/components/ScanResults/ScanResults.tsx
 import React, { useState, useMemo } from 'react';
-import { IndustrialCard, GlitchText, NeonInput, NeonSelect, NeonButton } from '@/components_kit';
+import { IndustrialCard, GlitchText, NeonInput, NeonSelect, NeonButton, IndustrialTabs } from '@/components_kit';
 import type { HostInfo } from '@/api/nmapApi';
 import { ScanProgress } from '../ScanProgress/ScanProgress';
 import { HostGrid } from '../HostGrid/HostGrid';
 import { HostDetailsModal } from '../HostDetailsModal/HostDetailsModal';
+import { TopologyGraph } from '../TopologyGraph/TopologyGraph';
 import type { ScanResultsProps } from './ScanResults.types';
 import styles from './ScanResults.module.css';
 import { nmapApi } from '@/api/nmapApi';
 
 type FilterStatus = 'all' | 'up' | 'down';
+type TabId = 'hosts' | 'topology';
 
 export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [selectedHost, setSelectedHost] = useState<HostInfo | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('hosts');
 
   const handleHostClick = (host: HostInfo) => {
     setSelectedHost(host);
@@ -73,6 +77,11 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
   const hostsUp = status.hosts.filter(h => h.status === 'up').length;
   const total = status.hosts.length;
 
+  const tabs = [
+    { id: 'hosts', label: `Hosts (${total})` },
+    { id: 'topology', label: 'Topology' },
+  ];
+
   return (
     <IndustrialCard title="RESULTS" variant="accent">
       <div className={styles.results}>
@@ -93,33 +102,53 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
                   <NeonButton size="sm" onClick={() => handleDownload('pdf')}>PDF</NeonButton>
                 </div>
               </div>
-              <div className={styles.controls}>
-                <NeonInput
-                  label="Search"
-                  value={search}
-                  onChange={setSearch}
-                  placeholder="IP or hostname..."
-                  size="sm"
-                />
-                <NeonSelect
-                  label="Status"
-                  options={[
-                    { value: 'all', label: 'All' },
-                    { value: 'up', label: 'Up' },
-                    { value: 'down', label: 'Down' },
-                  ]}
-                  value={filter}
-                  onChange={(v) => setFilter(v as FilterStatus)}
-                />
-              </div>
             </div>
-            <div className={styles.gridContainer}>
-              {filteredHosts.length === 0 ? (
-                <p style={{ color: 'var(--color-text-muted)' }}>No hosts match filters</p>
-              ) : (
-                <HostGrid hosts={filteredHosts} onHostClick={handleHostClick} />
-              )}
-            </div>
+
+            <IndustrialTabs
+              tabs={tabs}
+              active={activeTab}
+              onChange={(id) => setActiveTab(id as TabId)}
+            />
+
+            {activeTab === 'hosts' && (
+              <>
+                <div className={styles.controls}>
+                  <NeonInput
+                    label="Search"
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="IP or hostname..."
+                    size="sm"
+                  />
+                  <NeonSelect
+                    label="Status"
+                    options={[
+                      { value: 'all', label: 'All' },
+                      { value: 'up', label: 'Up' },
+                      { value: 'down', label: 'Down' },
+                    ]}
+                    value={filter}
+                    onChange={(v) => setFilter(v as FilterStatus)}
+                  />
+                </div>
+                <div className={styles.gridContainer}>
+                  {filteredHosts.length === 0 ? (
+                    <p style={{ color: 'var(--color-text-muted)' }}>No hosts match filters</p>
+                  ) : (
+                    <HostGrid hosts={filteredHosts} onHostClick={handleHostClick} />
+                  )}
+                </div>
+              </>
+            )}
+
+            {activeTab === 'topology' && (
+              <TopologyGraph
+                hosts={status.hosts}
+                scanId={status.scan_id}
+                onNodeClick={handleHostClick}
+              />
+            )}
+
             <HostDetailsModal
               open={modalOpen}
               host={selectedHost}

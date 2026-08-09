@@ -180,4 +180,7 @@ export const nmapApi = {
         scan_id_1: scanId1,
         scan_id_2: scanId2,
     }),
+
+  getTopology: (scanId: string) =>
+    axios.get<{ nodes: any[]; edges: any[] }>(`${SCAN_BASE}/topology/${scanId}`),
 };

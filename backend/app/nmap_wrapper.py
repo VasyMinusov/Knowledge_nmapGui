@@ -9,7 +9,6 @@ from typing import Dict, Any, List, Optional
 from .models import HostInfo, PortInfo, ScanStatus
 from .database import save_scan, update_scan, init_db, store_scan_hosts
 
-
 # Инициализация БД при первом импорте
 init_db()
 
@@ -51,25 +50,22 @@ def build_nmap_args(params: dict) -> List[str]:
 
 
 def parse_nmap_xml(xml_data: str) -> dict:
-    """Парсит XML вывод nmap и возвращает словарь с хостами."""
+    """Парсит XML вывод nmap и возвращает словарь с хостами, включая traceroute."""
     data = xmltodict.parse(xml_data)
     hosts = []
     nmap_run = data.get("nmaprun", {})
     host_list = nmap_run.get("host", [])
     
-    # Если host_list не список, превращаем в список
     if not isinstance(host_list, list):
         host_list = [host_list] if host_list else []
 
     for host in host_list:
-        # Если host – это словарь, парсим
         if not isinstance(host, dict):
             continue
 
         # Адрес
         address = host.get("address")
         if isinstance(address, list):
-            # Берём первый адрес (обычно IPv4)
             ip = address[0].get("@addr", "unknown") if address else "unknown"
         elif isinstance(address, dict):
             ip = address.get("@addr", "unknown")
@@ -80,7 +76,6 @@ def parse_nmap_xml(xml_data: str) -> dict:
         hostnames = host.get("hostnames", {})
         hostname_elem = hostnames.get("hostname")
         if isinstance(hostname_elem, list):
-            # Берём первое имя
             hostname = hostname_elem[0].get("@name") if hostname_elem else None
         elif isinstance(hostname_elem, dict):
             hostname = hostname_elem.get("@name")
@@ -143,14 +138,32 @@ def parse_nmap_xml(xml_data: str) -> dict:
         else:
             uptime = None
 
-        hosts.append(HostInfo(
-            ip=ip,
-            hostname=hostname,
-            status=state,
-            ports=port_list,
-            os=os_name,
-            uptime=uptime
-        ))
+        # --- НОВОЕ: извлечение traceroute ---
+        trace_hops = []
+        trace_elem = host.get("trace", {})
+        if trace_elem:
+            hop_list = trace_elem.get("hop", [])
+            if not isinstance(hop_list, list):
+                hop_list = [hop_list] if hop_list else []
+            for hop in hop_list:
+                if isinstance(hop, dict):
+                    hop_data = {
+                        "ttl": hop.get("@ttl"),
+                        "ip": hop.get("@ip"),
+                        "rtt": hop.get("@rtt"),
+                        "host": hop.get("@host")  # если есть hostname
+                    }
+                    trace_hops.append(hop_data)
+
+        hosts.append({
+            "ip": ip,
+            "hostname": hostname,
+            "status": state,
+            "ports": [p.dict() for p in port_list],  # конвертируем в dict
+            "os": os_name,
+            "uptime": uptime,
+            "trace": trace_hops  # добавляем traceroute
+        })
 
     return {"hosts": hosts}
 
@@ -166,10 +179,8 @@ def run_scan(scan_id: str, params: dict):
     profile = params.get("profile")
     options = params.get("options", {})
 
-    # Сохраняем начальную запись в БД
     save_scan(scan_id, targets, profile, options, "running", start_time)
 
-    # Сохраняем статус в памяти
     status = ScanStatus(
         scan_id=scan_id,
         status="running",
@@ -179,14 +190,12 @@ def run_scan(scan_id: str, params: dict):
     )
     scan_statuses[scan_id] = status
 
-    # Запуск процесса
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     scan_processes[scan_id] = process
 
     stdout, stderr = process.communicate()
     return_code = process.returncode
 
-    # Удаляем процесс из словаря
     scan_processes.pop(scan_id, None)
 
     end_time = datetime.now().isoformat()
@@ -202,16 +211,14 @@ def run_scan(scan_id: str, params: dict):
             summary = f"Completed. Found {len(hosts)} hosts."
             final_status = "done"
 
-            # Обновляем статус в памяти
             scan_statuses[scan_id].status = "done"
             scan_statuses[scan_id].progress = 100
             scan_statuses[scan_id].hosts = hosts
             scan_statuses[scan_id].summary = summary
 
-            # Сохраняем результат в БД
             update_scan(scan_id, final_status, end_time, result_path=xml_path, summary=summary)
 
-            # НОВОЕ: сохраняем структурированные данные хостов и портов
+            # Сохраняем структурированные данные (уже есть)
             store_scan_hosts(scan_id, hosts)
 
         except Exception as e:
@@ -229,16 +236,14 @@ def run_scan(scan_id: str, params: dict):
         scan_statuses[scan_id].summary = summary
         update_scan(scan_id, final_status, end_time, summary=summary)
 
+
 def cancel_scan(scan_id: str) -> bool:
-    """Отменяет сканирование (отправляет SIGTERM)."""
     process = scan_processes.get(scan_id)
     if process:
         process.terminate()
-        # Обновляем статус
         if scan_id in scan_statuses:
             scan_statuses[scan_id].status = "error"
             scan_statuses[scan_id].summary = "Cancelled by user"
-        # Обновляем в БД
         end_time = datetime.now().isoformat()
         update_scan(scan_id, "error", end_time, summary="Cancelled by user")
         return True
