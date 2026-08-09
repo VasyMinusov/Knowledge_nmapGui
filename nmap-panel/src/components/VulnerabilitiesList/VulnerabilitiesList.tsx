@@ -87,7 +87,7 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
     return (
       <IndustrialCard variant="accent">
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-          <NeonSpinner size={48} label="Loading vulnerabilities..." />
+          <NeonSpinner size={48} label="Загрузка уязвимостей..." />
         </div>
       </IndustrialCard>
     );
@@ -96,34 +96,34 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
   return (
     <IndustrialCard variant="accent">
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <GlitchText text="VULNERABILITIES" />
-        {scanId && <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Scan: {scanId.slice(0, 8)}</span>}
+        <GlitchText text="УЯЗВИМОСТИ" />
+        {scanId && <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Скан: {scanId.slice(0, 8)}</span>}
       </div>
 
       {!scanId && stats && (
         <div className={styles.stats}>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Total</span>
+            <span className={styles.statLabel}>Всего</span>
             <span className={styles.statValue}>{stats.total}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Unique CVEs</span>
+            <span className={styles.statLabel}>Уникальных CVE</span>
             <span className={styles.statValue}>{stats.unique_cves}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Avg CVSS</span>
-            <span className={styles.statValue}>{stats.avg_cvss?.toFixed(1) || 'N/A'}</span>
+            <span className={styles.statLabel}>Средний CVSS</span>
+            <span className={styles.statValue}>{stats.avg_cvss?.toFixed(1) || 'Н/Д'}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>High</span>
+            <span className={styles.statLabel}>Высокие</span>
             <span className={styles.statValue} style={{ color: 'var(--color-danger-base)' }}>{stats.high}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Medium</span>
+            <span className={styles.statLabel}>Средние</span>
             <span className={styles.statValue} style={{ color: '#ffb800' }}>{stats.medium}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Low</span>
+            <span className={styles.statLabel}>Низкие</span>
             <span className={styles.statValue} style={{ color: 'var(--color-accent-neon)' }}>{stats.low}</span>
           </div>
         </div>
@@ -131,31 +131,31 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
 
       <div className={styles.controls}>
         <NeonInput
-          label="Search"
+          label="Поиск"
           value={search}
           onChange={setSearch}
-          placeholder="CVE, IP, description..."
+          placeholder="CVE, IP, описание..."
           size="sm"
         />
         <NeonSelect
-          label="CVSS Severity"
+          label="Степень серьёзности CVSS"
           options={[
-            { value: 'all', label: 'All' },
-            { value: 'high', label: 'High (>=7.0)' },
-            { value: 'medium', label: 'Medium (4.0-6.9)' },
-            { value: 'low', label: 'Low (<4.0)' },
+            { value: 'all', label: 'Все' },
+            { value: 'high', label: 'Высокие (>=7.0)' },
+            { value: 'medium', label: 'Средние (4.0-6.9)' },
+            { value: 'low', label: 'Низкие (<4.0)' },
           ]}
           value={cvssFilter}
           onChange={setCvssFilter}
         />
         <NeonButton size="sm" variant="primary" onClick={loadData}>
-          ↻ Refresh
+          ↻ Обновить
         </NeonButton>
       </div>
 
       {filteredVulns.length === 0 ? (
         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-          No vulnerabilities found
+          Уязвимости не найдены
         </div>
       ) : (
         <div className={styles.tableWrapper}>
@@ -164,10 +164,10 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
               <tr>
                 <th>CVE</th>
                 <th>CVSS</th>
-                <th>Host</th>
-                <th>Port</th>
-                <th>Description</th>
-                <th>Scan</th>
+                <th>Хост</th>
+                <th>Порт</th>
+                <th>Описание</th>
+                <th>Скан</th>
               </tr>
             </thead>
             <tbody>

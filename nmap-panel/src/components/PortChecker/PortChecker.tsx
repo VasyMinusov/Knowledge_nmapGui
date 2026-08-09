@@ -54,7 +54,7 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
     if (!portInput.trim()) return;
     const parsed = parsePorts(portInput);
     if (parsed.length === 0) {
-      setError('Invalid port(s). Use e.g. 80, 443, 22-25');
+      setError('Некорректные порты. Используйте, например: 80, 443, 22-25');
       return;
     }
     setError('');
@@ -76,11 +76,11 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
 
   const handleSubmit = () => {
     if (!host.trim()) {
-      setError('Host is required');
+      setError('Требуется указать хост');
       return;
     }
     if (ports.length === 0) {
-      setError('At least one port is required');
+      setError('Необходимо указать хотя бы один порт');
       return;
     }
     setError('');
@@ -104,10 +104,10 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
       <div className={styles.row}>
         <div className={styles.hostField}>
           <NeonInput
-            label="Host"
+            label="Хост"
             value={host}
             onChange={setHost}
-            placeholder="IP or hostname"
+            placeholder="IP или имя хоста"
             error={error && !host.trim() ? error : undefined}
           />
         </div>
@@ -116,20 +116,20 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
       <div className={styles.row}>
         <div className={styles.portInputGroup}>
           <NeonInput
-            label="Ports"
+            label="Порты"
             value={portInput}
             onChange={setPortInput}
-            placeholder="e.g. 80, 443, 22-25"
+            placeholder="например, 80, 443, 22-25"
             onKeyDown={handleKeyDown}
             error={error && !portInput.trim() ? error : undefined}
-            hint="Separate with commas, use '-' for ranges"
+            hint="Разделяйте запятыми, используйте '-' для диапазонов"
           />
           <div className={styles.portActions}>
             <NeonButton size="sm" onClick={addPortsFromInput}>
-              <VscAdd /> Add
+              <VscAdd /> Добавить
             </NeonButton>
             <NeonButton size="sm" variant="danger" onClick={clearPorts}>
-              Clear all
+              Очистить всё
             </NeonButton>
           </div>
         </div>
@@ -140,13 +140,13 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
             onClick={handleSubmit}
             disabled={loading || !host.trim() || ports.length === 0}
           >
-            {loading ? <NeonSpinner size={24} /> : '▶ CHECK PORTS'}
+            {loading ? <NeonSpinner size={24} /> : '▶ ПРОВЕРИТЬ ПОРТЫ'}
           </NeonButton>
         </div>
       </div>
 
       <div className={styles.quickButtons}>
-        <span className={styles.quickLabel}>Quick add:</span>
+        <span className={styles.quickLabel}>Быстрое добавление:</span>
         {QUICK_PORTS.map(q => (
           <NeonButton
             key={q.label}
@@ -161,7 +161,7 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
 
       <div className={styles.portChips}>
         {ports.length === 0 && (
-          <span className={styles.emptyChips}>No ports selected</span>
+          <span className={styles.emptyChips}>Порты не выбраны</span>
         )}
         {ports.map(port => (
           <span key={port} className={styles.chip}>
@@ -181,16 +181,16 @@ export const PortChecker: React.FC<PortCheckerProps> = ({
         <div className={styles.results}>
           <div className={styles.summary}>
             <GlitchText
-              text={`${results.host} – ${openCount} open / ${results.summary.closed} closed / ${results.summary.error} errors`}
+              text={`${results.host} – ${openCount} открыто / ${results.summary.closed} закрыто / ${results.summary.error} ошибок`}
             />
           </div>
           <div className={styles.resultTable}>
             <table>
               <thead>
                 <tr>
-                  <th>Port</th>
-                  <th>State</th>
-                  <th>Error</th>
+                  <th>Порт</th>
+                  <th>Состояние</th>
+                  <th>Ошибка</th>
                 </tr>
               </thead>
               <tbody>

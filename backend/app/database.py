@@ -60,7 +60,7 @@ def init_db():
         )
     ''')
 
-    # НОВЫЕ ТАБЛИЦЫ для хранения структурированных результатов
+    # Таблицы для структурированных результатов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS scan_hosts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,6 +87,7 @@ def init_db():
         )
     ''')
 
+    # Таблица уязвимостей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS vulnerabilities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,6 +102,7 @@ def init_db():
             FOREIGN KEY (host_id) REFERENCES scan_hosts(id) ON DELETE CASCADE
         )
     ''')
+
     conn.commit()
     conn.close()
 
@@ -257,7 +259,7 @@ def update_schedule_last_run(schedule_id: int, last_run: str, last_scan_id: str)
     conn.commit()
     conn.close()
 
-# --- НОВЫЕ ФУНКЦИИ ДЛЯ СТРУКТУРИРОВАННЫХ РЕЗУЛЬТАТОВ ---
+# --- НОВЫЕ ФУНКЦИИ ДЛЯ СТРУКТУРИРОВАННЫХ РЕЗУЛЬТАТОВ И УЯЗВИМОСТЕЙ ---
 
 def store_scan_hosts(scan_id: str, hosts: List[Dict]):
     """Сохраняет хосты и порты из распарсенных данных в БД."""
@@ -294,6 +296,39 @@ def get_hosts_by_scan(scan_id: str) -> List[Dict]:
         result.append(host)
     conn.close()
     return result
+
+def get_host_id_by_ip(scan_id: str, ip: str) -> Optional[int]:
+    """Возвращает id хоста по scan_id и ip."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM scan_hosts WHERE scan_id = ? AND ip = ?", (scan_id, ip))
+    row = cursor.fetchone()
+    conn.close()
+    return row['id'] if row else None
+
+def store_vulnerabilities(scan_id: str, vuln_list: List[Dict]):
+    """Сохраняет список уязвимостей в БД."""
+    conn = get_db()
+    cursor = conn.cursor()
+    # Удаляем старые записи для этого скана
+    cursor.execute("DELETE FROM vulnerabilities WHERE scan_id = ?", (scan_id,))
+    for vuln in vuln_list:
+        cursor.execute(
+            """INSERT INTO vulnerabilities 
+               (scan_id, host_id, port, protocol, cve, cvss, description) 
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                scan_id,
+                vuln.get('host_id'),
+                vuln.get('port'),
+                vuln.get('protocol'),
+                vuln.get('cve'),
+                vuln.get('cvss'),
+                vuln.get('description')
+            )
+        )
+    conn.commit()
+    conn.close()
 
 def get_vulnerabilities_by_scan(scan_id: str) -> List[Dict]:
     """Возвращает все уязвимости для данного скана с информацией о хосте."""
@@ -336,7 +371,8 @@ def get_vulnerability_stats() -> Dict:
     cursor.execute("SELECT COUNT(DISTINCT cve) FROM vulnerabilities WHERE cve IS NOT NULL")
     stats['unique_cves'] = cursor.fetchone()[0]
     cursor.execute("SELECT AVG(cvss) FROM vulnerabilities WHERE cvss IS NOT NULL")
-    stats['avg_cvss'] = cursor.fetchone()[0] or 0
+    avg = cursor.fetchone()[0]
+    stats['avg_cvss'] = float(avg) if avg is not None else 0.0
     cursor.execute("""
         SELECT COUNT(*) FROM vulnerabilities WHERE cvss >= 7.0
     """)

@@ -1,3 +1,4 @@
+// src/components/KnowledgeBase/KnowledgeBase.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { NeonInput, NeonSelect } from '@/components_kit';
 import { nmapApi, type KnowledgeOption } from '@/api/nmapApi';
@@ -8,23 +9,23 @@ export const KnowledgeBase: React.FC = () => {
   const [options, setOptions] = useState<KnowledgeOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState('Все');
 
   useEffect(() => {
     nmapApi.getKnowledgeOptions()
       .then(res => setOptions(res.data))
-      .catch(err => console.error('Failed to load knowledge:', err))
+      .catch(err => console.error('Не удалось загрузить базу знаний:', err))
       .finally(() => setLoading(false));
   }, []);
 
   const categories = useMemo(() => {
-    const cats = ['All', ...new Set(options.map(o => o.category))];
+    const cats = ['Все', ...new Set(options.map(o => o.category))];
     return cats;
   }, [options]);
 
   const filtered = useMemo(() => {
     let items = options;
-    if (category !== 'All') {
+    if (category !== 'Все') {
       items = items.filter(o => o.category === category);
     }
     if (search.trim()) {
@@ -39,20 +40,20 @@ export const KnowledgeBase: React.FC = () => {
     return items;
   }, [search, category, options]);
 
-  if (loading) return <div className={styles.empty}>Loading knowledge base...</div>;
+  if (loading) return <div className={styles.empty}>Загрузка базы знаний...</div>;
 
   return (
     <div className={styles.container}>
       <div className={styles.controls}>
         <NeonInput
-          label="Search"
+          label="Поиск"
           value={search}
           onChange={setSearch}
-          placeholder="Flag, description, example..."
+          placeholder="Флаг, описание, пример..."
         />
         <div style={{ minWidth: 200 }}>
           <NeonSelect
-            label="Category"
+            label="Категория"
             options={categories.map(c => ({ value: c, label: c }))}
             value={category}
             onChange={setCategory}
@@ -61,7 +62,7 @@ export const KnowledgeBase: React.FC = () => {
       </div>
       <div className={styles.grid}>
         {filtered.length === 0 ? (
-          <div className={styles.empty}>No options found</div>
+          <div className={styles.empty}>Опции не найдены</div>
         ) : (
           filtered.map(opt => <OptionCard key={opt.id} option={opt} />)
         )}

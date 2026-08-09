@@ -5,9 +5,12 @@ import './tokens/colors.css';
 import './tokens/shadows.css';
 import './tokens/typography.css';
 import App from './App';
+import { ThemeProvider } from './context/ThemeContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </React.StrictMode>
 );

@@ -15,10 +15,10 @@ import { nmapApi, type Preset } from '@/api/nmapApi';
 import styles from './ScanConfig.module.css';
 
 const profiles = [
-  { value: 'intense', label: 'Intense ( -T4 -A -v )' },
-  { value: 'quick', label: 'Quick ( -T4 -F )' },
-  { value: 'ping', label: 'Ping Sweep ( -sn )' },
-  { value: 'custom', label: 'Custom' },
+  { value: 'intense', label: 'Интенсивное ( -T4 -A -v )' },
+  { value: 'quick', label: 'Быстрое ( -T4 -F )' },
+  { value: 'ping', label: 'Ping-обход ( -sn )' },
+  { value: 'custom', label: 'Пользовательский' },
 ];
 
 export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
@@ -38,7 +38,7 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
         const res = await nmapApi.getPresets();
         setPresets(res.data.presets);
       } catch (err) {
-        console.error('Failed to load presets:', err);
+        console.error('Не удалось загрузить пресеты:', err);
       }
     };
     loadPresets();
@@ -57,7 +57,7 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
       setTraceroute(opts.traceroute || false);
       setScripts(opts.scripts || '');
     } catch (e) {
-      console.error('Failed to parse preset options:', e);
+      console.error('Не удалось разобрать опции пресета:', e);
     }
     setSelectedPresetId(presetId);
   };
@@ -89,7 +89,7 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
 
   // Список пресетов для выпадающего меню
   const presetOptions = [
-    { value: '', label: '— Select preset —' },
+    { value: '', label: '— Выберите пресет —' },
     ...presets.map(p => ({ value: String(p.id), label: p.name })),
   ];
 
@@ -97,12 +97,12 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
     <IndustrialCard variant="accent">
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
         <VscAdd size={20} />
-        <GlitchText text="NEW SCAN" />
+        <GlitchText text="НОВОЕ СКАНИРОВАНИЕ" />
       </div>
       <div className={styles.config}>
         {/* Выбор пресета */}
         <NeonSelect
-          label="Load Preset"
+          label="Загрузить пресет"
           options={presetOptions}
           value={selectedPresetId ? String(selectedPresetId) : ''}
           onChange={(val) => {
@@ -113,15 +113,15 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
         />
 
         <NeonInput
-          label="Targets"
+          label="Цели"
           value={targets}
           onChange={setTargets}
-          placeholder="e.g. 192.168.1.1-254, example.com"
-          hint="IP, CIDR, range, hostname"
+          placeholder="например, 192.168.1.1-254, example.com"
+          hint="IP, CIDR, диапазон, имя хоста"
         />
 
         <NeonSelect
-          label="Profile"
+          label="Профиль"
           options={profiles}
           value={profile}
           onChange={setProfile}
@@ -129,33 +129,33 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
 
         {profile === 'custom' && (
           <NeonInput
-            label="Scripts (--script)"
+            label="Скрипты (--script)"
             value={scripts}
             onChange={setScripts}
-            placeholder="e.g. default, safe, vuln"
+            placeholder="например, default, safe, vuln"
           />
         )}
 
         <div className={styles.optionsRow}>
-          <NeonTooltip content="Detect operating system (-O)">
+          <NeonTooltip content="Определить операционную систему (-O)">
             <NeonCheckbox
               checked={osDetection}
               onChange={setOsDetection}
-              label="OS Detection"
+              label="Определение ОС"
             />
           </NeonTooltip>
-          <NeonTooltip content="Detect service versions (-sV)">
+          <NeonTooltip content="Определить версии сервисов (-sV)">
             <NeonCheckbox
               checked={versionDetection}
               onChange={setVersionDetection}
-              label="Version Detection"
+              label="Определение версий"
             />
           </NeonTooltip>
-          <NeonTooltip content="Trace route (--traceroute)">
+          <NeonTooltip content="Трассировка маршрута (--traceroute)">
             <NeonCheckbox
               checked={traceroute}
               onChange={setTraceroute}
-              label="Traceroute"
+              label="Трассировка"
             />
           </NeonTooltip>
         </div>
@@ -167,7 +167,7 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
             onClick={handleSubmit}
             disabled={loading || !targets.trim()}
           >
-            {loading ? 'SCANNING...' : '▶ START SCAN'}
+            {loading ? 'СКАНИРОВАНИЕ...' : '▶ ЗАПУСТИТЬ СКАНИРОВАНИЕ'}
           </NeonButton>
           <NeonButton
             size="lg"
@@ -175,7 +175,7 @@ export const ScanConfig: React.FC<ScanConfigProps> = ({ onStart, loading }) => {
             onClick={clearForm}
             disabled={loading}
           >
-            <VscClearAll /> Clear
+            <VscClearAll /> Очистить
           </NeonButton>
         </div>
       </div>

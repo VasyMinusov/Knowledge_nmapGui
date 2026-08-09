@@ -72,17 +72,17 @@ export const ScanCompare: React.FC = () => {
   return (
     <IndustrialCard variant="accent">
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <GlitchText text="COMPARE SCANS" />
+        <GlitchText text="СРАВНЕНИЕ СКАНОВ" />
       </div>
       <div className={styles.selector}>
         <NeonSelect
-          label="First scan"
+          label="Первый скан"
           options={scanOptions}
           value={scan1Id}
           onChange={setScan1Id}
         />
         <NeonSelect
-          label="Second scan"
+          label="Второй скан"
           options={scanOptions}
           value={scan2Id}
           onChange={setScan2Id}
@@ -93,25 +93,25 @@ export const ScanCompare: React.FC = () => {
           onClick={handleCompare}
           disabled={!scan1Id || !scan2Id || loading}
         >
-          {loading ? <NeonSpinner size={24} /> : 'COMPARE'}
+          {loading ? <NeonSpinner size={24} /> : 'СРАВНИТЬ'}
         </NeonButton>
       </div>
 
       {result && (
         <div className={styles.results}>
           <div className={styles.summary}>
-            <GlitchText text={`Added: ${result.diff.added.length} | Removed: ${result.diff.removed.length} | Modified: ${result.diff.modified.length}`} />
+            <GlitchText text={`Добавлено: ${result.diff.added.length} | Удалено: ${result.diff.removed.length} | Изменено: ${result.diff.modified.length}`} />
           </div>
 
           {result.diff.added.length > 0 && (
             <div>
-              <h3 className={styles.sectionTitle}>Added hosts</h3>
+              <h3 className={styles.sectionTitle}>Добавленные хосты</h3>
               <div className={styles.hostList}>
                 {result.diff.added.map((h) => (
                   <div key={h.ip} className={styles.hostCard}>
                     <span className={styles.ip}>{h.ip}</span>
                     {h.hostname && <span className={styles.hostname}>{h.hostname}</span>}
-                    <StatusBadge label="up" variant="accent" />
+                    <StatusBadge label="доступен" variant="accent" />
                   </div>
                 ))}
               </div>
@@ -120,13 +120,13 @@ export const ScanCompare: React.FC = () => {
 
           {result.diff.removed.length > 0 && (
             <div>
-              <h3 className={styles.sectionTitle}>Removed hosts</h3>
+              <h3 className={styles.sectionTitle}>Удалённые хосты</h3>
               <div className={styles.hostList}>
                 {result.diff.removed.map((h) => (
                   <div key={h.ip} className={styles.hostCard}>
                     <span className={styles.ip}>{h.ip}</span>
                     {h.hostname && <span className={styles.hostname}>{h.hostname}</span>}
-                    <StatusBadge label="down" variant="muted" />
+                    <StatusBadge label="недоступен" variant="muted" />
                   </div>
                 ))}
               </div>
@@ -135,27 +135,27 @@ export const ScanCompare: React.FC = () => {
 
           {result.diff.modified.length > 0 && (
             <div>
-              <h3 className={styles.sectionTitle}>Modified hosts</h3>
+              <h3 className={styles.sectionTitle}>Изменённые хосты</h3>
               {result.diff.modified.map((m) => (
                 <div key={m.ip} className={styles.modifiedCard}>
                   <div className={styles.modifiedHeader}>
                     <span className={styles.ip}>{m.ip}</span>
                     <span className={styles.changesSummary}>
-                      {m.changes.status && `Status: ${m.changes.status.old} → ${m.changes.status.new} `}
-                      {m.changes.os && `OS: ${m.changes.os.old} → ${m.changes.os.new} `}
-                      {m.changes.ports && `Ports: +${m.changes.ports.added.length} -${m.changes.ports.removed.length}`}
+                      {m.changes.status && `Статус: ${m.changes.status.old} → ${m.changes.status.new} `}
+                      {m.changes.os && `ОС: ${m.changes.os.old} → ${m.changes.os.new} `}
+                      {m.changes.ports && `Порты: +${m.changes.ports.added.length} -${m.changes.ports.removed.length}`}
                     </span>
                   </div>
                   {m.changes.ports && (
                     <div className={styles.portChanges}>
                       {m.changes.ports.added.map((p: any) => (
                         <span key={`${p.port}-${p.protocol}`} className={styles.portAdded}>
-                          {p.port}/{p.protocol} (new)
+                          {p.port}/{p.protocol} (новый)
                         </span>
                       ))}
                       {m.changes.ports.removed.map((p: any) => (
                         <span key={`${p.port}-${p.protocol}`} className={styles.portRemoved}>
-                          {p.port}/{p.protocol} (removed)
+                          {p.port}/{p.protocol} (удалён)
                         </span>
                       ))}
                     </div>

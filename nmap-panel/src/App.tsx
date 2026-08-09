@@ -1,5 +1,5 @@
-// frontend/src/App.tsx
-import React, { useState, useEffect } from 'react';
+// src/App.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BackgroundEffects,
   ToastStack,
@@ -29,13 +29,25 @@ import { ScanCompare } from './components/ScanCompare/ScanCompare';
 import { CommandExplainer } from './components/CommandExplainer/CommandExplainer';
 import { VulnerabilitiesList } from './components/VulnerabilitiesList/VulnerabilitiesList';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard/AnalyticsDashboard';
-
 import { useScan } from './hooks/useScan';
 import { nmapApi, type ScanHistoryItem, type Preset, type ScanRequest, type Schedule, type HostInfo } from './api/nmapApi';
+import { useTheme } from './context/ThemeContext';
 
-type Screen = 'scan' | 'history' | 'presets' | 'schedules' | 'knowledge' | 'portcheck' | 'compare' | 'explainer' | 'vulns' | 'analytics';
+type Screen =
+  | 'scan'
+  | 'history'
+  | 'presets'
+  | 'schedules'
+  | 'knowledge'
+  | 'portcheck'
+  | 'compare'
+  | 'explainer'
+  | 'vulns'
+  | 'analytics';
 
 const App: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+
   // --- Состояния ---
   const [screen, setScreen] = useState<Screen>('scan');
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -70,52 +82,52 @@ const App: React.FC = () => {
   });
 
   // --- Вспомогательные функции ---
-  const addToast = (title: string, description?: string, variant?: Toast['variant']) => {
+  const addToast = useCallback((title: string, description?: string, variant?: Toast['variant']) => {
     const id = Date.now().toString();
     setToasts(prev => [...prev, { id, title, description, variant: variant || 'accent' }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 5000);
-  };
+  }, []);
 
   // --- Загрузка истории ---
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
       const res = await nmapApi.getHistory();
       setHistory(res.data.scans);
     } catch (error) {
-      addToast('Error', 'Failed to load history', 'danger');
+      addToast('Ошибка', 'Не удалось загрузить историю', 'danger');
     } finally {
       setHistoryLoading(false);
     }
-  };
+  }, [addToast]);
 
   // --- Загрузка пресетов ---
-  const loadPresets = async () => {
+  const loadPresets = useCallback(async () => {
     try {
       const res = await nmapApi.getPresets();
       setPresets(res.data.presets);
     } catch (error) {
-      addToast('Error', 'Failed to load presets', 'danger');
+      addToast('Ошибка', 'Не удалось загрузить пресеты', 'danger');
     }
-  };
+  }, [addToast]);
 
   // --- Загрузка расписаний ---
-  const loadSchedules = async () => {
+  const loadSchedules = useCallback(async () => {
     setSchedulesLoading(true);
     try {
       const res = await nmapApi.getSchedules();
       setSchedules(res.data.schedules);
     } catch (error) {
-      addToast('Error', 'Failed to load schedules', 'danger');
+      addToast('Ошибка', 'Не удалось загрузить расписания', 'danger');
     } finally {
       setSchedulesLoading(false);
     }
-  };
+  }, [addToast]);
 
   // Загрузка выбранного скана для просмотра
-  const loadSelectedScan = async (scanId: string) => {
+  const loadSelectedScan = useCallback(async (scanId: string) => {
     setSelectedLoading(true);
     try {
       const [scanRes, hostsRes] = await Promise.all([
@@ -127,11 +139,11 @@ const App: React.FC = () => {
         hosts: hostsRes.data.hosts,
       });
     } catch (error) {
-      addToast('Error', 'Failed to load scan details', 'danger');
+      addToast('Ошибка', 'Не удалось загрузить детали скана', 'danger');
     } finally {
       setSelectedLoading(false);
     }
-  };
+  }, [addToast]);
 
   // Загружаем данные при переключении экранов
   useEffect(() => {
@@ -144,154 +156,154 @@ const App: React.FC = () => {
     if (screen === 'schedules') {
       loadSchedules();
     }
-  }, [screen]);
+  }, [screen, loadHistory, loadPresets, loadSchedules]);
 
   // --- Обработчики для истории ---
-  const handleViewHistory = (scanId: string) => {
+  const handleViewHistory = useCallback((scanId: string) => {
     loadSelectedScan(scanId);
-  };
+  }, [loadSelectedScan]);
 
-  const handleDeleteHistory = async (scanId: string) => {
+  const handleDeleteHistory = useCallback(async (scanId: string) => {
     try {
       await nmapApi.deleteHistoryItem(scanId);
-      addToast('Deleted', `Scan ${scanId} removed`, 'accent');
+      addToast('Удалено', `Скан ${scanId} удалён`, 'accent');
       loadHistory();
       if (selectedScan?.scan.scan_id === scanId) setSelectedScan(null);
     } catch (error) {
-      addToast('Error', 'Failed to delete history item', 'danger');
+      addToast('Ошибка', 'Не удалось удалить запись', 'danger');
     }
-  };
+  }, [addToast, loadHistory, selectedScan]);
 
-  const handleCopyPreset = (item: ScanHistoryItem) => {
+  const handleCopyPreset = useCallback((item: ScanHistoryItem) => {
     let options = {};
     try {
       options = item.options ? JSON.parse(item.options) : {};
     } catch (e) { /* ignore */ }
     setEditingPreset({
       id: 0,
-      name: `Preset from ${item.scan_id.slice(0, 8)}`,
+      name: `Пресет из ${item.scan_id.slice(0, 8)}`,
       targets: item.targets,
       profile: item.profile,
       options: JSON.stringify(options),
-      description: `Copied from scan ${item.scan_id}`,
+      description: `Скопировано из скана ${item.scan_id}`,
       created_at: new Date().toISOString(),
     });
     setPresetFormOpen(true);
-  };
+  }, []);
 
   // --- Обработчики для пресетов ---
-  const handleSelectPreset = (preset: Preset) => {
+  const handleSelectPreset = useCallback((preset: Preset) => {
     setScreen('scan');
-    addToast('Preset selected', `Loaded "${preset.name}"`, 'accent');
-  };
+    addToast('Пресет выбран', `Загружен "${preset.name}"`, 'accent');
+  }, [addToast]);
 
-  const handleEditPreset = (preset: Preset) => {
+  const handleEditPreset = useCallback((preset: Preset) => {
     setEditingPreset(preset);
     setPresetFormOpen(true);
-  };
+  }, []);
 
-  const handleDeletePreset = async (id: number) => {
+  const handleDeletePreset = useCallback(async (id: number) => {
     try {
       await nmapApi.deletePreset(id);
-      addToast('Deleted', 'Preset removed', 'accent');
+      addToast('Удалено', 'Пресет удалён', 'accent');
       loadPresets();
     } catch (error) {
-      addToast('Error', 'Failed to delete preset', 'danger');
+      addToast('Ошибка', 'Не удалось удалить пресет', 'danger');
     }
-  };
+  }, [addToast, loadPresets]);
 
-  const handleSavePreset = async (data: any) => {
+  const handleSavePreset = useCallback(async (data: any) => {
     try {
       if (editingPreset && editingPreset.id > 0) {
         await nmapApi.updatePreset(editingPreset.id, data);
-        addToast('Updated', 'Preset updated', 'accent');
+        addToast('Обновлено', 'Пресет обновлён', 'accent');
       } else {
         await nmapApi.createPreset(data);
-        addToast('Created', 'Preset created', 'accent');
+        addToast('Создано', 'Пресет создан', 'accent');
       }
       setPresetFormOpen(false);
       setEditingPreset(null);
       loadPresets();
     } catch (error) {
-      addToast('Error', 'Failed to save preset', 'danger');
+      addToast('Ошибка', 'Не удалось сохранить пресет', 'danger');
     }
-  };
+  }, [addToast, editingPreset, loadPresets]);
 
   // --- Обработчики для расписаний ---
-  const handleViewSchedule = (schedule: Schedule) => {
-    addToast('Info', `Schedule: ${schedule.name}`, 'accent');
-  };
+  const handleViewSchedule = useCallback((schedule: Schedule) => {
+    addToast('Информация', `Расписание: ${schedule.name}`, 'accent');
+  }, [addToast]);
 
-  const handleEditSchedule = (schedule: Schedule) => {
+  const handleEditSchedule = useCallback((schedule: Schedule) => {
     setEditingSchedule(schedule);
     setScheduleFormOpen(true);
-  };
+  }, []);
 
-  const handleDeleteSchedule = async (id: number) => {
+  const handleDeleteSchedule = useCallback(async (id: number) => {
     try {
       await nmapApi.deleteSchedule(id);
-      addToast('Deleted', 'Schedule removed', 'accent');
+      addToast('Удалено', 'Расписание удалено', 'accent');
       loadSchedules();
     } catch (error) {
-      addToast('Error', 'Failed to delete schedule', 'danger');
+      addToast('Ошибка', 'Не удалось удалить расписание', 'danger');
     }
-  };
+  }, [addToast, loadSchedules]);
 
-  const handleRunScheduleNow = async (id: number) => {
+  const handleRunScheduleNow = useCallback(async (id: number) => {
     try {
       const res = await nmapApi.runScheduleNow(id);
-      addToast('Schedule started', `Scan ID: ${res.data.scan_id}`, 'accent');
+      addToast('Расписание запущено', `ID скана: ${res.data.scan_id}`, 'accent');
       loadSchedules();
     } catch (error) {
-      addToast('Error', 'Failed to run schedule', 'danger');
+      addToast('Ошибка', 'Не удалось запустить расписание', 'danger');
     }
-  };
+  }, [addToast, loadSchedules]);
 
-  const handleSaveSchedule = async (data: any) => {
+  const handleSaveSchedule = useCallback(async (data: any) => {
     try {
       if (editingSchedule && editingSchedule.id > 0) {
         await nmapApi.updateSchedule(editingSchedule.id, data);
-        addToast('Updated', 'Schedule updated', 'accent');
+        addToast('Обновлено', 'Расписание обновлено', 'accent');
       } else {
         await nmapApi.createSchedule(data);
-        addToast('Created', 'Schedule created', 'accent');
+        addToast('Создано', 'Расписание создано', 'accent');
       }
       setScheduleFormOpen(false);
       setEditingSchedule(null);
       loadSchedules();
     } catch (error) {
-      addToast('Error', 'Failed to save schedule', 'danger');
+      addToast('Ошибка', 'Не удалось сохранить расписание', 'danger');
     }
-  };
+  }, [addToast, editingSchedule, loadSchedules]);
 
   // --- Обработчики сканирования ---
-  const handleStartScan = (params: ScanRequest) => {
+  const handleStartScan = useCallback((params: ScanRequest) => {
     startScan(params);
-    addToast('Scan started', 'Nmap is running...', 'accent');
-  };
+    addToast('Сканирование запущено', 'Nmap выполняется...', 'accent');
+  }, [startScan, addToast]);
 
-  const handleCancelScan = () => {
+  const handleCancelScan = useCallback(() => {
     cancelScan();
-    addToast('Scan cancelled', 'The scan was stopped', 'warning');
-  };
+    addToast('Сканирование отменено', 'Процесс остановлен', 'warning');
+  }, [cancelScan, addToast]);
 
   // --- Обработчик Port Check ---
-  const handlePortCheck = async (host: string, ports: number[]) => {
+  const handlePortCheck = useCallback(async (host: string, ports: number[]) => {
     setPortCheckLoading(true);
     try {
       const res = await nmapApi.checkPorts({ host, ports });
       setPortCheckResults(res.data);
-      addToast('Port check completed', `Found ${res.data.summary.open} open ports`, 'accent');
+      addToast('Проверка портов завершена', `Найдено ${res.data.summary.open} открытых портов`, 'accent');
     } catch (error) {
-      addToast('Error', 'Port check failed', 'danger');
+      addToast('Ошибка', 'Не удалось проверить порты', 'danger');
     } finally {
       setPortCheckLoading(false);
     }
-  };
+  }, [addToast]);
 
   // --- Обработчик скачивания отчёта ---
-  const handleDownloadReport = async (scanId: string) => {
-    const format = prompt('Enter format (html, docx, pdf):', 'html');
+  const handleDownloadReport = useCallback(async (scanId: string) => {
+    const format = prompt('Введите формат (html, docx, pdf):', 'html');
     if (!format || !['html', 'docx', 'pdf'].includes(format)) return;
     try {
       const res = await nmapApi.downloadReport(scanId, format as 'html' | 'docx' | 'pdf');
@@ -304,14 +316,14 @@ const App: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      addToast('Report downloaded', `Format: ${format}`, 'accent');
+      addToast('Отчёт скачан', `Формат: ${format}`, 'accent');
     } catch (error) {
-      addToast('Error', 'Failed to download report', 'danger');
+      addToast('Ошибка', 'Не удалось скачать отчёт', 'danger');
     }
-  };
+  }, [addToast]);
 
   // --- Рендер экранов ---
-  const renderScreen = () => {
+  const renderScreen = useCallback(() => {
     switch (screen) {
       case 'scan':
         return (
@@ -321,7 +333,7 @@ const App: React.FC = () => {
               {loading && status?.scan_id && (
                 <div style={{ marginTop: '12px' }}>
                   <NeonButton variant="danger" size="md" onClick={handleCancelScan}>
-                    CANCEL SCAN
+                    ОТМЕНИТЬ СКАНИРОВАНИЕ
                   </NeonButton>
                 </div>
               )}
@@ -329,7 +341,7 @@ const App: React.FC = () => {
             <IndustrialCard variant="accent">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                 <VscServer size={20} />
-                <GlitchText text="SCAN RESULTS" />
+                <GlitchText text="РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ" />
               </div>
               <ScanResults status={status} loading={loading} />
             </IndustrialCard>
@@ -341,7 +353,7 @@ const App: React.FC = () => {
           <IndustrialCard variant="accent">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <VscHistory size={20} />
-              <GlitchText text="SCAN HISTORY" />
+              <GlitchText text="ИСТОРИЯ СКАНИРОВАНИЙ" />
             </div>
             <HistoryList
               items={history}
@@ -359,7 +371,7 @@ const App: React.FC = () => {
           <IndustrialCard variant="accent">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <VscSettings size={20} />
-              <GlitchText text="PRESETS" />
+              <GlitchText text="ПРЕСЕТЫ" />
             </div>
             <PresetManager
               presets={presets}
@@ -379,7 +391,7 @@ const App: React.FC = () => {
           <IndustrialCard variant="accent">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <VscClockface size={20} />
-              <GlitchText text="SCHEDULES" />
+              <GlitchText text="РАСПИСАНИЯ" />
             </div>
             <ScheduleList
               schedules={schedules}
@@ -397,7 +409,7 @@ const App: React.FC = () => {
                   setScheduleFormOpen(true);
                 }}
               >
-                + ADD SCHEDULE
+                + ДОБАВИТЬ РАСПИСАНИЕ
               </NeonButton>
             </div>
           </IndustrialCard>
@@ -408,7 +420,7 @@ const App: React.FC = () => {
           <IndustrialCard variant="accent">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <VscBook size={20} />
-              <GlitchText text="KNOWLEDGE BASE" />
+              <GlitchText text="БАЗА ЗНАНИЙ" />
             </div>
             <KnowledgeBase />
           </IndustrialCard>
@@ -419,7 +431,7 @@ const App: React.FC = () => {
           <IndustrialCard variant="accent">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <VscServer size={20} />
-              <GlitchText text="PORT CHECKER" />
+              <GlitchText text="ПРОВЕРКА ПОРТОВ" />
             </div>
             <PortChecker
               onCheck={handlePortCheck}
@@ -437,14 +449,39 @@ const App: React.FC = () => {
 
       case 'vulns':
         return <VulnerabilitiesList />;
-      
+
       case 'analytics':
         return <AnalyticsDashboard />;
 
       default:
         return null;
     }
-  };
+  }, [
+    screen,
+    loading,
+    status,
+    history,
+    historyLoading,
+    presets,
+    schedules,
+    schedulesLoading,
+    portCheckResults,
+    portCheckLoading,
+    handleStartScan,
+    handleCancelScan,
+    handleViewHistory,
+    handleDeleteHistory,
+    handleCopyPreset,
+    handleDownloadReport,
+    handleSelectPreset,
+    handleEditPreset,
+    handleDeletePreset,
+    handleViewSchedule,
+    handleEditSchedule,
+    handleDeleteSchedule,
+    handleRunScheduleNow,
+    handlePortCheck,
+  ]);
 
   // --- Основной рендер ---
   return (
@@ -452,38 +489,43 @@ const App: React.FC = () => {
       <BackgroundEffects />
 
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <GlitchText text="NMAP PANEL" />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+          <GlitchText text="ПАНЕЛЬ NMAP" />
+          <NeonButton variant="primary" onClick={toggleTheme} size="sm">
+            {theme === 'green' ? '🟢 Зелёная' : '🟡 Жёлтая'}
+          </NeonButton>
+        </div>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 24, marginTop: 12, flexWrap: 'wrap' }}>
           <div style={screen === 'scan' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('scan')}>Scan</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('scan')}>Сканирование</NeonButton>
           </div>
           <div style={screen === 'history' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('history')}>History</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('history')}>История</NeonButton>
           </div>
           <div style={screen === 'presets' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('presets')}>Presets</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('presets')}>Пресеты</NeonButton>
           </div>
           <div style={screen === 'schedules' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('schedules')}>Schedules</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('schedules')}>Расписания</NeonButton>
           </div>
           <div style={screen === 'knowledge' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('knowledge')}>Knowledge</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('knowledge')}>База знаний</NeonButton>
           </div>
           <div style={screen === 'portcheck' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('portcheck')}>Port Check</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('portcheck')}>Проверка портов</NeonButton>
           </div>
           <div style={screen === 'compare' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('compare')}>Compare</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('compare')}>Сравнение</NeonButton>
           </div>
           <div style={screen === 'explainer' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('explainer')}>Explainer</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('explainer')}>Объяснитель</NeonButton>
           </div>
           <div style={screen === 'vulns' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('vulns')}>Vulns</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('vulns')}>Уязвимости</NeonButton>
           </div>
           <div style={screen === 'analytics' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-            <NeonButton variant="primary" onClick={() => setScreen('analytics')}>Analytics</NeonButton>
+            <NeonButton variant="primary" onClick={() => setScreen('analytics')}>Аналитика</NeonButton>
           </div>
         </div>
 
@@ -494,7 +536,7 @@ const App: React.FC = () => {
       <IndustrialModal
         open={!!selectedScan}
         onClose={() => setSelectedScan(null)}
-        title={selectedScan ? `Scan: ${selectedScan.scan.scan_id.slice(0, 8)}` : ''}
+        title={selectedScan ? `Скан: ${selectedScan.scan.scan_id.slice(0, 8)}` : ''}
         variant="default"
       >
         {selectedScan && (

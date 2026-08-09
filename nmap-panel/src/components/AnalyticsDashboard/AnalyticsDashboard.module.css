@@ -41,6 +41,7 @@
   gap: 16px;
   align-items: flex-end;
   margin-bottom: 16px;
+  overflow: visible;
 }
 
 .timelineControls > *:first-child {

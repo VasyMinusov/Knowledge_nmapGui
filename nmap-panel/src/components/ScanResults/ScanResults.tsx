@@ -55,22 +55,22 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
       link.click();
       link.remove();
     } catch (err) {
-      alert('Failed to download report');
+      alert('Не удалось скачать отчёт');
     }
   };
 
   if (loading && !status) {
     return (
-      <IndustrialCard title="📡 RESULTS">
-        <ScanProgress status="pending" progress={0} summary="Initializing..." />
+      <IndustrialCard title="📡 РЕЗУЛЬТАТЫ">
+        <ScanProgress status="pending" progress={0} summary="Инициализация..." />
       </IndustrialCard>
     );
   }
 
   if (!status) {
     return (
-      <IndustrialCard title="RESULTS">
-        <p style={{ color: 'var(--color-text-muted)' }}>No scan results yet.</p>
+      <IndustrialCard title="РЕЗУЛЬТАТЫ">
+        <p style={{ color: 'var(--color-text-muted)' }}>Результатов сканирования пока нет.</p>
       </IndustrialCard>
     );
   }
@@ -79,13 +79,13 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
   const total = status.hosts.length;
 
   const tabs = [
-    { id: 'hosts', label: `Hosts (${total})` },
-    { id: 'topology', label: 'Topology' },
-    { id: 'vulnerabilities', label: 'Vulnerabilities' },
+    { id: 'hosts', label: `Хосты (${total})` },
+    { id: 'topology', label: 'Топология' },
+    { id: 'vulnerabilities', label: 'Уязвимости' },
   ];
 
   return (
-    <IndustrialCard title="RESULTS" variant="accent">
+    <IndustrialCard title="РЕЗУЛЬТАТЫ" variant="accent">
       <div className={styles.results}>
         <ScanProgress
           progress={status.progress || 0}
@@ -97,7 +97,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
           <>
             <div className={styles.header}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <GlitchText text={`Hosts up: ${hostsUp} / ${total}`} />
+                <GlitchText text={`Хостов доступно: ${hostsUp} / ${total}`} />
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <NeonButton size="sm" onClick={() => handleDownload('html')}>HTML</NeonButton>
                   <NeonButton size="sm" onClick={() => handleDownload('docx')}>DOCX</NeonButton>
@@ -116,18 +116,18 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
               <>
                 <div className={styles.controls}>
                   <NeonInput
-                    label="Search"
+                    label="Поиск"
                     value={search}
                     onChange={setSearch}
-                    placeholder="IP or hostname..."
+                    placeholder="IP или имя хоста..."
                     size="sm"
                   />
                   <NeonSelect
-                    label="Status"
+                    label="Статус"
                     options={[
-                      { value: 'all', label: 'All' },
-                      { value: 'up', label: 'Up' },
-                      { value: 'down', label: 'Down' },
+                      { value: 'all', label: 'Все' },
+                      { value: 'up', label: 'Доступны' },
+                      { value: 'down', label: 'Недоступны' },
                     ]}
                     value={filter}
                     onChange={(v) => setFilter(v as FilterStatus)}
@@ -135,7 +135,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
                 </div>
                 <div className={styles.gridContainer}>
                   {filteredHosts.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-muted)' }}>No hosts match filters</p>
+                    <p style={{ color: 'var(--color-text-muted)' }}>Нет хостов, соответствующих фильтрам</p>
                   ) : (
                     <HostGrid hosts={filteredHosts} onHostClick={handleHostClick} />
                   )}

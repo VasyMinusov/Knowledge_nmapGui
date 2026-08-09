@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from ..models import ScanRequest, ScanStatus
-from ..nmap_wrapper import run_scan, get_scan_status, cancel_scan, parse_nmap_xml  # добавлен parse_nmap_xml
+from ..nmap_wrapper import run_scan, get_scan_status, cancel_scan, parse_nmap_xml
 import uuid
 from ..database import get_scans, get_scan_by_id, delete_scan, get_presets, get_preset, create_preset, update_preset, delete_preset
 from typing import Optional
 from fastapi.responses import Response
 from ..report_generator import generate_report
-import os  # добавлен import os
+import os
 
 router = APIRouter()
 
@@ -42,23 +42,22 @@ async def get_scan_result(scan_id: str):
         raise HTTPException(status_code=404, detail="Scan not found")
     return scan
 
-@router.get("/history/{scan_id}/hosts")  # НОВЫЙ ЭНДПОИНТ
+@router.get("/history/{scan_id}/hosts")
 async def get_scan_hosts(scan_id: str):
     """Возвращает список хостов для указанного скана."""
     scan = get_scan_by_id(scan_id)
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
-    
     result_path = scan.get('result_path')
     if not result_path or not os.path.exists(result_path):
         return {"hosts": []}
-    
     with open(result_path, 'r') as f:
         xml_data = f.read()
     parsed = parse_nmap_xml(xml_data)
-    hosts = parsed.get('hosts', [])
-    # Преобразуем HostInfo в dict для сериализации
-    return {"hosts": [h.dict() for h in hosts]}
+    hosts_objects = parsed.get('hosts', [])  # список объектов HostInfo
+    # Преобразуем в словари для сериализации
+    hosts_dict = [h.dict() for h in hosts_objects]
+    return {"hosts": hosts_dict}
 
 @router.delete("/history/{scan_id}")
 async def delete_scan_history(scan_id: str):

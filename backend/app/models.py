@@ -33,5 +33,6 @@ class ScanStatus(BaseModel):
     scan_id: str
     status: str  # 'pending', 'running', 'done', 'error'
     progress: Optional[int] = None  # 0-100
+    stage: Optional[str] = None    # новый: 'ping', 'port_scan', 'service_detection', 'script_scan'
     hosts: List[HostInfo] = []
     summary: Optional[str] = None

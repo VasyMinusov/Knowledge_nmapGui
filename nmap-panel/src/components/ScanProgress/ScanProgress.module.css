@@ -10,3 +10,20 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.stage {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 0;
+}
+.stageLabel {
+  color: var(--color-text-secondary);
+  margin-right: 8px;
+}
+.stageValue {
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 8px var(--color-accent-glow);
+}

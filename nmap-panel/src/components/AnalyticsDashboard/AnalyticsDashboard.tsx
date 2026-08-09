@@ -61,7 +61,7 @@ export const AnalyticsDashboard: React.FC = () => {
       setTopPorts(portsRes.data);
       setTimeline(timelineRes.data);
     } catch (err) {
-      console.error('Failed to load analytics:', err);
+      console.error('Не удалось загрузить аналитику:', err);
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
   // Данные для круговой диаграммы ОС
   const osChartData = {
-    labels: osDist.map((item) => item.os || 'Unknown'),
+    labels: osDist.map((item) => item.os || 'Неизвестно'),
     datasets: [
       {
         data: osDist.map((item) => item.count),
@@ -103,7 +103,7 @@ export const AnalyticsDashboard: React.FC = () => {
     labels: services.map((item) => item.service),
     datasets: [
       {
-        label: 'Open Ports',
+        label: 'Открытых портов',
         data: services.map((item) => item.count),
         backgroundColor: 'rgba(102, 255, 51, 0.6)',
         borderColor: '#66ff33',
@@ -117,7 +117,7 @@ export const AnalyticsDashboard: React.FC = () => {
     labels: topPorts.map((item) => `${item.port}/${item.protocol}`),
     datasets: [
       {
-        label: 'Occurrences',
+        label: 'Количество вхождений',
         data: topPorts.map((item) => item.count),
         backgroundColor: 'rgba(255, 184, 0, 0.6)',
         borderColor: '#ffb800',
@@ -131,7 +131,7 @@ export const AnalyticsDashboard: React.FC = () => {
     labels: timeline.map((item) => item.date),
     datasets: [
       {
-        label: 'Hosts',
+        label: 'Хосты',
         data: timeline.map((item) => item.hosts),
         borderColor: '#66ff33',
         backgroundColor: 'rgba(102, 255, 51, 0.1)',
@@ -142,7 +142,7 @@ export const AnalyticsDashboard: React.FC = () => {
         pointBorderWidth: 2,
       },
       {
-        label: 'Open Ports',
+        label: 'Открытые порты',
         data: timeline.map((item) => item.ports),
         borderColor: '#ffb800',
         backgroundColor: 'rgba(255, 184, 0, 0.1)',
@@ -223,7 +223,7 @@ export const AnalyticsDashboard: React.FC = () => {
     return (
       <IndustrialCard variant="accent">
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-          <NeonSpinner size={48} label="Loading analytics..." />
+          <NeonSpinner size={48} label="Загрузка аналитики..." />
         </div>
       </IndustrialCard>
     );
@@ -233,66 +233,66 @@ export const AnalyticsDashboard: React.FC = () => {
     <div className={styles.dashboard}>
       <IndustrialCard variant="accent">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          <GlitchText text="ANALYTICS DASHBOARD" />
+          <GlitchText text="ПАНЕЛЬ АНАЛИТИКИ" />
         </div>
 
-        {/* Overview Cards */}
+        {/* Карточки обзора */}
         <div className={styles.overviewGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Total Scans</div>
+            <div className={styles.statLabel}>Всего сканов</div>
             <div className={styles.statValue}>{overview?.total_scans || 0}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Total Hosts</div>
+            <div className={styles.statLabel}>Всего хостов</div>
             <div className={styles.statValue}>{overview?.total_hosts || 0}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Open Ports</div>
+            <div className={styles.statLabel}>Открытых портов</div>
             <div className={styles.statValue}>{overview?.total_open_ports || 0}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Vulnerabilities</div>
+            <div className={styles.statLabel}>Уязвимостей</div>
             <div className={styles.statValue}>{overview?.total_vulnerabilities || 0}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Unique CVEs</div>
+            <div className={styles.statLabel}>Уникальных CVE</div>
             <div className={styles.statValue}>{overview?.unique_cves || 0}</div>
           </div>
         </div>
 
-        {/* Timeline controls */}
+        {/* Управление временным диапазоном */}
         <div className={styles.timelineControls}>
           <NeonSelect
-            label="Days"
+            label="Дней"
             options={[
-              { value: '7', label: '7 days' },
-              { value: '30', label: '30 days' },
-              { value: '90', label: '90 days' },
-              { value: '365', label: '365 days' },
+              { value: '7', label: '7 дней' },
+              { value: '30', label: '30 дней' },
+              { value: '90', label: '90 дней' },
+              { value: '365', label: '365 дней' },
             ]}
             value={String(timelineDays)}
             onChange={(val) => setTimelineDays(Number(val))}
           />
           <NeonButton size="sm" variant="primary" onClick={loadData}>
-            ↻ Refresh
+            ↻ Обновить
           </NeonButton>
         </div>
 
-        {/* Timeline Chart */}
+        {/* График временного ряда */}
         {timeline.length > 0 && (
           <div className={styles.chartContainer}>
-            <div className={styles.chartTitle}>Hosts & Ports Over Time</div>
+            <div className={styles.chartTitle}>Хосты и порты во времени</div>
             <div className={styles.chartWrapper}>
               <Line data={timelineChartData} options={timelineOptions} />
             </div>
           </div>
         )}
 
-        {/* Charts grid */}
+        {/* Сетка графиков */}
         <div className={styles.chartsGrid}>
           {osDist.length > 0 && (
             <div className={styles.chartCard}>
-              <div className={styles.chartTitle}>OS Distribution</div>
+              <div className={styles.chartTitle}>Распределение ОС</div>
               <div className={styles.chartWrapperSmall}>
                 <Doughnut data={osChartData} options={doughnutOptions} />
               </div>
@@ -301,7 +301,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
           {services.length > 0 && (
             <div className={styles.chartCard}>
-              <div className={styles.chartTitle}>Top Services</div>
+              <div className={styles.chartTitle}>Топ сервисов</div>
               <div className={styles.chartWrapperSmall}>
                 <Bar data={servicesChartData} options={barOptions} />
               </div>
@@ -310,7 +310,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
           {topPorts.length > 0 && (
             <div className={styles.chartCard}>
-              <div className={styles.chartTitle}>Top Open Ports</div>
+              <div className={styles.chartTitle}>Топ открытых портов</div>
               <div className={styles.chartWrapperSmall}>
                 <Bar data={portsChartData} options={barOptions} />
               </div>

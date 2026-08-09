@@ -36,7 +36,7 @@ export const CommandExplainer: React.FC = () => {
 
   const handleExplain = async () => {
     if (!command.trim()) {
-      setError('Please enter a command');
+      setError('Пожалуйста, введите команду');
       return;
     }
     setError(null);
@@ -45,7 +45,7 @@ export const CommandExplainer: React.FC = () => {
       const res = await nmapApi.explainCommand(command.trim());
       setResult(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to explain command');
+      setError(err.response?.data?.detail || 'Не удалось объяснить команду');
     } finally {
       setLoading(false);
     }
@@ -70,16 +70,16 @@ export const CommandExplainer: React.FC = () => {
   return (
     <IndustrialCard variant="accent">
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <GlitchText text="COMMAND EXPLAINER" />
+        <GlitchText text="ОБЪЯСНИТЕЛЬ КОМАНД" />
       </div>
 
       <div className={styles.inputArea}>
         <NeonInput
-          label="Nmap Command"
+          label="Команда Nmap"
           value={command}
           onChange={setCommand}
           onKeyDown={handleKeyDown}
-          placeholder="e.g. nmap -sS -sV 192.168.1.1"
+          placeholder="например, nmap -sS -sV 192.168.1.1"
           error={error || undefined}
           size="lg"
         />
@@ -89,12 +89,12 @@ export const CommandExplainer: React.FC = () => {
           onClick={handleExplain}
           disabled={loading || !command.trim()}
         >
-          {loading ? <NeonSpinner size={24} /> : '▶ EXPLAIN'}
+          {loading ? <NeonSpinner size={24} /> : '▶ ОБЪЯСНИТЬ'}
         </NeonButton>
       </div>
 
       <div className={styles.examples}>
-        <span className={styles.exampleLabel}>Quick examples:</span>
+        <span className={styles.exampleLabel}>Быстрые примеры:</span>
         {examples.map((ex, idx) => (
           <button
             key={idx}
@@ -130,17 +130,17 @@ export const CommandExplainer: React.FC = () => {
                       <div className={styles.flagDesc}>{flag.description}</div>
                       {flag.use_case && (
                         <div className={styles.flagUseCase}>
-                          <span className={styles.label}>Use case:</span> {flag.use_case}
+                          <span className={styles.label}>Применение:</span> {flag.use_case}
                         </div>
                       )}
                       {flag.example && (
                         <div className={styles.flagExample}>
-                          <span className={styles.label}>Example:</span> {flag.example}
+                          <span className={styles.label}>Пример:</span> {flag.example}
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className={styles.flagUnknown}>Unknown flag – check your command</div>
+                    <div className={styles.flagUnknown}>Неизвестный флаг – проверьте команду</div>
                   )}
                 </div>
               </div>

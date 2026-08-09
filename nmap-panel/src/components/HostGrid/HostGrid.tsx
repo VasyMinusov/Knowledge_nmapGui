@@ -1,3 +1,4 @@
+// src/components/HostGrid/HostGrid.tsx
 import React, { useMemo } from 'react';
 import type { HostGridProps } from './HostGrid.types';
 import styles from './HostGrid.module.css';
@@ -7,7 +8,7 @@ const getSubnet = (ip: string): string => {
   if (parts.length === 4) {
     return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
   }
-  return 'unknown';
+  return 'неизвестно';
 };
 
 export const HostGrid: React.FC<HostGridProps> = ({ hosts, onHostClick }) => {
@@ -26,7 +27,7 @@ export const HostGrid: React.FC<HostGridProps> = ({ hosts, onHostClick }) => {
       {Object.entries(grouped).map(([subnet, hostsInSubnet]) => (
         <div key={subnet} className={styles.subnetGroup}>
           <div className={styles.subnetTitle}>
-            {subnet} ({hostsInSubnet.length} hosts)
+            {subnet} ({hostsInSubnet.length} хостов)
           </div>
           <div className={styles.hostList}>
             {hostsInSubnet.map(host => {

@@ -73,6 +73,7 @@ def compute_diff(hosts1: List[Dict], hosts2: List[Dict]) -> Dict[str, Any]:
         'modified': modified
     }
 
+@router.post("")
 @router.post("/")
 async def compare_scans(payload: Dict[str, str]):
     scan_id_1 = payload.get('scan_id_1')

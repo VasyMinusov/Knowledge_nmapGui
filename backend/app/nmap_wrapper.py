@@ -23,7 +23,6 @@ os.makedirs(SCAN_DIR, exist_ok=True)
 scan_statuses: Dict[str, ScanStatus] = {}
 scan_processes: Dict[str, subprocess.Popen] = {}
 
-
 def build_nmap_args(params: dict) -> List[str]:
     """Собирает аргументы командной строки для nmap на основе параметров."""
     args = ["nmap"]
@@ -52,10 +51,13 @@ def build_nmap_args(params: dict) -> List[str]:
     args.append(params["targets"])
     return args
 
-
 def parse_nmap_xml(xml_data: str) -> dict:
-    """Парсит XML вывод nmap и возвращает словарь с хостами и уязвимостями."""
-    data = xmltodict.parse(xml_data)
+    """Парсит XML вывод nmap и возвращает словарь с хостами (объектами HostInfo) и уязвимостями."""
+    try:
+        data = xmltodict.parse(xml_data)
+    except Exception:
+        return {"hosts": [], "vulnerabilities": []}
+    
     hosts = []
     vuln_list = []
     nmap_run = data.get("nmaprun", {})
@@ -68,14 +70,19 @@ def parse_nmap_xml(xml_data: str) -> dict:
         if not isinstance(host, dict):
             continue
 
-        # Адрес
-        address = host.get("address")
-        if isinstance(address, list):
-            ip = address[0].get("@addr", "unknown") if address else "unknown"
-        elif isinstance(address, dict):
-            ip = address.get("@addr", "unknown")
-        else:
-            ip = "unknown"
+        # Адрес — может быть несколько, берём первый ipv4
+        address_elem = host.get("address")
+        ip = "unknown"
+        if isinstance(address_elem, list):
+            for addr in address_elem:
+                if isinstance(addr, dict) and addr.get("@addrtype") == "ipv4":
+                    ip = addr.get("@addr", "unknown")
+                    break
+            if ip == "unknown" and address_elem:
+                ip = address_elem[0].get("@addr", "unknown")
+        elif isinstance(address_elem, dict):
+            ip = address_elem.get("@addr", "unknown")
+        # если address_elem None, ip остаётся "unknown"
 
         # Hostname
         hostnames = host.get("hostnames", {})
@@ -182,19 +189,27 @@ def parse_nmap_xml(xml_data: str) -> dict:
                         'description': output[:500]
                     })
 
-        hosts.append(HostInfo(
-            ip=ip,
-            hostname=hostname,
-            status=state,
-            ports=port_list,
-            os=os_name,
-            uptime=uptime
-        ))
+        # Добавляем хост даже если ip = "unknown", но лучше пропускать такие?
+        # Пропускаем хосты без IP
+        if ip != "unknown":
+            hosts.append(HostInfo(
+                ip=ip,
+                hostname=hostname,
+                status=state,
+                ports=port_list,
+                os=os_name,
+                uptime=uptime
+            ))
 
-    # Преобразуем HostInfo в dict для хранения в БД
-    hosts_dict = [h.dict() for h in hosts]
-    return {"hosts": hosts_dict, "vulnerabilities": vuln_list}
+    return {"hosts": hosts, "vulnerabilities": vuln_list}
 
+def update_scan_status(scan_id: str, progress: int, stage: str, summary: str):
+    """Обновляет статус сканирования в памяти."""
+    if scan_id in scan_statuses:
+        status = scan_statuses[scan_id]
+        status.progress = progress
+        status.stage = stage
+        status.summary = summary
 
 def run_scan(scan_id: str, params: dict):
     """Запускает nmap в подпроцессе, сохраняет XML, парсит и обновляет статус."""
@@ -215,14 +230,40 @@ def run_scan(scan_id: str, params: dict):
         scan_id=scan_id,
         status="running",
         progress=0,
+        stage="initializing",
         hosts=[],
         summary="Scanning..."
     )
     scan_statuses[scan_id] = status
 
     # Запуск процесса
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
     scan_processes[scan_id] = process
+
+    # Читаем stderr для отслеживания прогресса
+    while True:
+        line = process.stderr.readline()
+        if not line:
+            break
+        line = line.strip()
+        if '# ' in line:
+            # Извлекаем процент
+            match = re.search(r'(\d+\.?\d*)%', line)
+            if match:
+                progress = float(match.group(1))
+            else:
+                progress = 0
+            # Определяем этап
+            stage = 'scanning'
+            if 'Nmap scan report' in line:
+                stage = 'port_scan'
+            elif 'Service detection' in line:
+                stage = 'service_detection'
+            elif 'NSE' in line or 'script' in line.lower():
+                stage = 'script_scan'
+            elif 'Starting Nmap' in line:
+                stage = 'initializing'
+            update_scan_status(scan_id, int(progress), stage, line[:200])
 
     stdout, stderr = process.communicate()
     return_code = process.returncode
@@ -239,20 +280,21 @@ def run_scan(scan_id: str, params: dict):
             with open(xml_path, 'r') as f:
                 xml_data = f.read()
             parsed = parse_nmap_xml(xml_data)
-            hosts_dict = parsed.get("hosts", [])
+            hosts_objects = parsed.get("hosts", [])
             vulns = parsed.get("vulnerabilities", [])
-            summary = f"Completed. Found {len(hosts_dict)} hosts."
+            hosts_dict = [h.dict() for h in hosts_objects]
+            summary = f"Completed. Found {len(hosts_objects)} hosts."
             final_status = "done"
 
             # Обновляем статус в памяти
             scan_statuses[scan_id].status = "done"
             scan_statuses[scan_id].progress = 100
-            scan_statuses[scan_id].hosts = hosts_dict
+            scan_statuses[scan_id].stage = "done"
+            scan_statuses[scan_id].hosts = hosts_objects
             scan_statuses[scan_id].summary = summary
 
             # Сохраняем результат в БД
             update_scan(scan_id, final_status, end_time, result_path=xml_path, summary=summary)
-            # Сохраняем структурированные данные хостов и портов
             store_scan_hosts(scan_id, hosts_dict)
 
             # Сохраняем уязвимости, привязывая к host_id
@@ -261,7 +303,6 @@ def run_scan(scan_id: str, params: dict):
                 if host_id:
                     vuln['host_id'] = host_id
                 else:
-                    # Если хост не найден, пропускаем (возможно, не сохранился)
                     continue
             store_vulnerabilities(scan_id, vulns)
 
@@ -273,16 +314,15 @@ def run_scan(scan_id: str, params: dict):
             scan_statuses[scan_id].summary = error_msg
             update_scan(scan_id, final_status, end_time, summary=error_msg)
     else:
-        error_msg = stderr.decode() if stderr else "Unknown error"
+        error_msg = stderr if stderr else "Unknown error"
         summary = f"Scan failed: {error_msg}"
         final_status = "error"
         scan_statuses[scan_id].status = "error"
         scan_statuses[scan_id].summary = summary
         update_scan(scan_id, final_status, end_time, summary=summary)
 
-
 def cancel_scan(scan_id: str) -> bool:
-    """Отменяет сканирование (отправляет SIGTERM)."""
+    """Отменяет сканирование."""
     process = scan_processes.get(scan_id)
     if process:
         process.terminate()
@@ -293,7 +333,6 @@ def cancel_scan(scan_id: str) -> bool:
         update_scan(scan_id, "error", end_time, summary="Cancelled by user")
         return True
     return False
-
 
 def get_scan_status(scan_id: str) -> Optional[ScanStatus]:
     return scan_statuses.get(scan_id)

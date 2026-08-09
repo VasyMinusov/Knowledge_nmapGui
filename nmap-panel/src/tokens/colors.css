@@ -24,3 +24,21 @@
   --color-border-default: #66ff33;
   --color-border-accent: #66ff33;
 }
+
+[data-theme="yellow"] {
+  --color-bg-primary: #1a140e;
+  --color-bg-secondary: #221c14;
+  --color-bg-tertiary: #2a2218;
+  --color-bg-elevated: #33291e;
+  --color-accent-neon: #ffb800;
+  --color-accent-dim: rgba(255, 184, 0, 0.3);
+  --color-accent-glow: rgba(255, 184, 0, 0.8);
+  --color-accent-glow-strong: rgba(255, 184, 0, 1);
+  --color-danger-base: #3399ff;  /* синий вместо красного */
+  --color-danger-glow: rgba(51, 153, 255, 0.8);
+  --color-text-primary: #ffdd66;
+  --color-text-secondary: #e6b800;
+  --color-text-muted: #a67c00;
+  --color-border-default: #ffb800;
+  --color-border-accent: #ffb800;
+}

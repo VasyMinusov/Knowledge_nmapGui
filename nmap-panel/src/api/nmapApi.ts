@@ -5,6 +5,8 @@ const SCAN_BASE = 'http://localhost:5000/api/scan';
 const SCHEDULE_BASE = 'http://localhost:5000/api/schedule';
 const KNOWLEDGE_BASE = 'http://localhost:5000/api/knowledge';
 const PORT_CHECK_BASE = 'http://localhost:5000/api/port-check';
+const VULN_BASE = 'http://localhost:5000/api/vulnerabilities';
+const ANALYTICS_BASE = 'http://localhost:5000/api/analytics';
 
 // --- Типы для сканирования ---
 export interface ScanOptions {
@@ -129,7 +131,7 @@ export const nmapApi = {
     axios.get<ScanHistoryItem>(`${SCAN_BASE}/history/${scanId}`),
   deleteHistoryItem: (scanId: string) =>
     axios.delete(`${SCAN_BASE}/history/${scanId}`),
-  getScanHosts: (scanId: string) =>  // НОВЫЙ МЕТОД
+  getScanHosts: (scanId: string) =>
     axios.get<{ hosts: HostInfo[] }>(`${SCAN_BASE}/history/${scanId}/hosts`),
 
   // Пресеты
@@ -190,18 +192,18 @@ export const nmapApi = {
   getTopology: (scanId: string) =>
     axios.get<{ nodes: any[]; edges: any[] }>(`${SCAN_BASE}/topology/${scanId}`),
 
-  // Vuln
+  // Vulnerabilities
   getVulnerabilities: (scanId: string) =>
     axios.get<{ scan_id: string; vulnerabilities: any[] }>(
-        `${SCAN_BASE}/vulnerabilities/scan/${scanId}`
+        `${VULN_BASE}/scan/${scanId}`
     ),
   getAllVulnerabilities: (limit = 100, offset = 0) =>
     axios.get<{ vulnerabilities: any[]; limit: number; offset: number }>(
-        `${SCAN_BASE}/vulnerabilities/all?limit=${limit}&offset=${offset}`
+        `${VULN_BASE}/all?limit=${limit}&offset=${offset}`
     ),
   getVulnerabilityStats: () =>
     axios.get<{ total: number; unique_cves: number; avg_cvss: number; high: number; medium: number; low: number }>(
-        `${SCAN_BASE}/vulnerabilities/stats`
+        `${VULN_BASE}/stats`
     ),
 
   // Analytics
@@ -212,17 +214,17 @@ export const nmapApi = {
         total_open_ports: number;
         total_vulnerabilities: number;
         unique_cves: number;
-    }>(`${SCAN_BASE}/analytics/overview`),
+    }>(`${ANALYTICS_BASE}/overview`),
 
   getTopServices: (limit = 10) =>
-    axios.get<{ service: string; count: number }[]>(`${SCAN_BASE}/analytics/services?limit=${limit}`),
+    axios.get<{ service: string; count: number }[]>(`${ANALYTICS_BASE}/services?limit=${limit}`),
 
   getOSDistribution: () =>
-    axios.get<{ os: string; count: number }[]>(`${SCAN_BASE}/analytics/os`),
+    axios.get<{ os: string; count: number }[]>(`${ANALYTICS_BASE}/os`),
 
   getTopPorts: (limit = 10) =>
-    axios.get<{ port: number; protocol: string; count: number }[]>(`${SCAN_BASE}/analytics/ports?limit=${limit}`),
+    axios.get<{ port: number; protocol: string; count: number }[]>(`${ANALYTICS_BASE}/ports?limit=${limit}`),
 
   getTimeline: (days = 30) =>
-    axios.get<{ date: string; hosts: number; ports: number }[]>(`${SCAN_BASE}/analytics/timeline?days=${days}`),
+    axios.get<{ date: string; hosts: number; ports: number }[]>(`${ANALYTICS_BASE}/timeline?days=${days}`),
 };

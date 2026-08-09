@@ -16,3 +16,13 @@
   gap: 12px;
   margin-top: 8px;
 }
+
+@media (max-width: 768px) {
+  .optionsRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .buttonRow {
+    flex-direction: column;
+  }
+}
