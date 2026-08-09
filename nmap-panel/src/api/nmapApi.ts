@@ -203,4 +203,26 @@ export const nmapApi = {
     axios.get<{ total: number; unique_cves: number; avg_cvss: number; high: number; medium: number; low: number }>(
         `${SCAN_BASE}/vulnerabilities/stats`
     ),
+
+  // Analytics
+  getAnalyticsOverview: () =>
+    axios.get<{
+        total_scans: number;
+        total_hosts: number;
+        total_open_ports: number;
+        total_vulnerabilities: number;
+        unique_cves: number;
+    }>(`${SCAN_BASE}/analytics/overview`),
+
+  getTopServices: (limit = 10) =>
+    axios.get<{ service: string; count: number }[]>(`${SCAN_BASE}/analytics/services?limit=${limit}`),
+
+  getOSDistribution: () =>
+    axios.get<{ os: string; count: number }[]>(`${SCAN_BASE}/analytics/os`),
+
+  getTopPorts: (limit = 10) =>
+    axios.get<{ port: number; protocol: string; count: number }[]>(`${SCAN_BASE}/analytics/ports?limit=${limit}`),
+
+  getTimeline: (days = 30) =>
+    axios.get<{ date: string; hosts: number; ports: number }[]>(`${SCAN_BASE}/analytics/timeline?days=${days}`),
 };

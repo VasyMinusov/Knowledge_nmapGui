@@ -28,10 +28,12 @@ import { PortChecker } from './components/PortChecker/PortChecker';
 import { ScanCompare } from './components/ScanCompare/ScanCompare';
 import { CommandExplainer } from './components/CommandExplainer/CommandExplainer';
 import { VulnerabilitiesList } from './components/VulnerabilitiesList/VulnerabilitiesList';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard/AnalyticsDashboard';
+
 import { useScan } from './hooks/useScan';
 import { nmapApi, type ScanHistoryItem, type Preset, type ScanRequest, type Schedule, type HostInfo } from './api/nmapApi';
 
-type Screen = 'scan' | 'history' | 'presets' | 'schedules' | 'knowledge' | 'portcheck' | 'compare' | 'explainer' | 'vulns';
+type Screen = 'scan' | 'history' | 'presets' | 'schedules' | 'knowledge' | 'portcheck' | 'compare' | 'explainer' | 'vulns' | 'analytics';
 
 const App: React.FC = () => {
   // --- Состояния ---
@@ -435,6 +437,9 @@ const App: React.FC = () => {
 
       case 'vulns':
         return <VulnerabilitiesList />;
+      
+      case 'analytics':
+        return <AnalyticsDashboard />;
 
       default:
         return null;
@@ -476,6 +481,9 @@ const App: React.FC = () => {
           </div>
           <div style={screen === 'vulns' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
             <NeonButton variant="primary" onClick={() => setScreen('vulns')}>Vulns</NeonButton>
+          </div>
+          <div style={screen === 'analytics' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
+            <NeonButton variant="primary" onClick={() => setScreen('analytics')}>Analytics</NeonButton>
           </div>
         </div>
 
