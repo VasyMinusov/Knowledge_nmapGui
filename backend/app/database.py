@@ -87,6 +87,20 @@ def init_db():
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS vulnerabilities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scan_id TEXT NOT NULL,
+            host_id INTEGER NOT NULL,
+            port INTEGER,
+            protocol TEXT,
+            cve TEXT,
+            cvss REAL,
+            description TEXT,
+            FOREIGN KEY (scan_id) REFERENCES scans(scan_id) ON DELETE CASCADE,
+            FOREIGN KEY (host_id) REFERENCES scan_hosts(id) ON DELETE CASCADE
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -280,3 +294,60 @@ def get_hosts_by_scan(scan_id: str) -> List[Dict]:
         result.append(host)
     conn.close()
     return result
+
+def get_vulnerabilities_by_scan(scan_id: str) -> List[Dict]:
+    """Возвращает все уязвимости для данного скана с информацией о хосте."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT v.*, h.ip, h.hostname, h.os 
+        FROM vulnerabilities v
+        JOIN scan_hosts h ON v.host_id = h.id
+        WHERE v.scan_id = ?
+        ORDER BY v.cvss DESC
+    """, (scan_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_all_vulnerabilities(limit: int = 100, offset: int = 0) -> List[Dict]:
+    """Возвращает все уязвимости из всех сканов с пагинацией."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT v.*, h.ip, h.hostname, h.os, s.scan_id, s.start_time
+        FROM vulnerabilities v
+        JOIN scan_hosts h ON v.host_id = h.id
+        JOIN scans s ON v.scan_id = s.scan_id
+        ORDER BY v.cvss DESC
+        LIMIT ? OFFSET ?
+    """, (limit, offset))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_vulnerability_stats() -> Dict:
+    """Агрегированная статистика по уязвимостям."""
+    conn = get_db()
+    cursor = conn.cursor()
+    stats = {}
+    cursor.execute("SELECT COUNT(*) FROM vulnerabilities")
+    stats['total'] = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(DISTINCT cve) FROM vulnerabilities WHERE cve IS NOT NULL")
+    stats['unique_cves'] = cursor.fetchone()[0]
+    cursor.execute("SELECT AVG(cvss) FROM vulnerabilities WHERE cvss IS NOT NULL")
+    stats['avg_cvss'] = cursor.fetchone()[0] or 0
+    cursor.execute("""
+        SELECT COUNT(*) FROM vulnerabilities WHERE cvss >= 7.0
+    """)
+    stats['high'] = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*) FROM vulnerabilities WHERE cvss >= 4.0 AND cvss < 7.0
+    """)
+    stats['medium'] = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*) FROM vulnerabilities WHERE cvss < 4.0
+    """)
+    stats['low'] = cursor.fetchone()[0]
+    conn.close()
+    return stats

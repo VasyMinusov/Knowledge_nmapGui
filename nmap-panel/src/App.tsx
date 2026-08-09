@@ -25,11 +25,13 @@ import { ScheduleList } from './components/ScheduleList/ScheduleList';
 import { ScheduleFormModal } from './components/ScheduleFormModal/ScheduleFormModal';
 import { KnowledgeBase } from './components/KnowledgeBase/KnowledgeBase';
 import { PortChecker } from './components/PortChecker/PortChecker';
-import { ScanCompare } from './components/ScanCompare/ScanCompare'; // НОВЫЙ ИМПОРТ
+import { ScanCompare } from './components/ScanCompare/ScanCompare';
+import { CommandExplainer } from './components/CommandExplainer/CommandExplainer';
+import { VulnerabilitiesList } from './components/VulnerabilitiesList/VulnerabilitiesList';
 import { useScan } from './hooks/useScan';
 import { nmapApi, type ScanHistoryItem, type Preset, type ScanRequest, type Schedule, type HostInfo } from './api/nmapApi';
 
-type Screen = 'scan' | 'history' | 'presets' | 'schedules' | 'knowledge' | 'portcheck' | 'compare'; // добавлен 'compare'
+type Screen = 'scan' | 'history' | 'presets' | 'schedules' | 'knowledge' | 'portcheck' | 'compare' | 'explainer' | 'vulns';
 
 const App: React.FC = () => {
   // --- Состояния ---
@@ -425,8 +427,14 @@ const App: React.FC = () => {
           </IndustrialCard>
         );
 
-      case 'compare': // НОВЫЙ КЕЙС
+      case 'compare':
         return <ScanCompare />;
+
+      case 'explainer':
+        return <CommandExplainer />;
+
+      case 'vulns':
+        return <VulnerabilitiesList />;
 
       default:
         return null;
@@ -460,9 +468,14 @@ const App: React.FC = () => {
           <div style={screen === 'portcheck' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
             <NeonButton variant="primary" onClick={() => setScreen('portcheck')}>Port Check</NeonButton>
           </div>
-          {/* НОВАЯ КНОПКА COMPARE */}
           <div style={screen === 'compare' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
             <NeonButton variant="primary" onClick={() => setScreen('compare')}>Compare</NeonButton>
+          </div>
+          <div style={screen === 'explainer' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
+            <NeonButton variant="primary" onClick={() => setScreen('explainer')}>Explainer</NeonButton>
+          </div>
+          <div style={screen === 'vulns' ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
+            <NeonButton variant="primary" onClick={() => setScreen('vulns')}>Vulns</NeonButton>
           </div>
         </div>
 

@@ -163,6 +163,12 @@ export const nmapApi = {
     axios.get<KnowledgeOption[]>(`${KNOWLEDGE_BASE}/options`),
   getKnowledgeCategories: () => 
     axios.get<string[]>(`${KNOWLEDGE_BASE}/categories`),
+
+  explainCommand: (command: string) =>
+    axios.post<{ command: string; summary: string; flags: any[] }>(
+        `${KNOWLEDGE_BASE}/explain`,
+        { command }
+    ),
   
   // Port Check
   checkPorts: (data: PortCheckRequest) => 
@@ -183,4 +189,18 @@ export const nmapApi = {
 
   getTopology: (scanId: string) =>
     axios.get<{ nodes: any[]; edges: any[] }>(`${SCAN_BASE}/topology/${scanId}`),
+
+  // Vuln
+  getVulnerabilities: (scanId: string) =>
+    axios.get<{ scan_id: string; vulnerabilities: any[] }>(
+        `${SCAN_BASE}/vulnerabilities/scan/${scanId}`
+    ),
+  getAllVulnerabilities: (limit = 100, offset = 0) =>
+    axios.get<{ vulnerabilities: any[]; limit: number; offset: number }>(
+        `${SCAN_BASE}/vulnerabilities/all?limit=${limit}&offset=${offset}`
+    ),
+  getVulnerabilityStats: () =>
+    axios.get<{ total: number; unique_cves: number; avg_cvss: number; high: number; medium: number; low: number }>(
+        `${SCAN_BASE}/vulnerabilities/stats`
+    ),
 };

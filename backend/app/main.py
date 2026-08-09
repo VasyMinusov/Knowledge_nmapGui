@@ -1,7 +1,7 @@
 # backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import scan, schedule, port_check, compare, topology  # добавили topology
+from .routes import scan, schedule, port_check, compare, topology, vulnerabilities # добавили topology
 from .knowledge_base import router as knowledge_router
 
 app = FastAPI(title="Nmap Panel API")
@@ -20,6 +20,7 @@ app.include_router(knowledge_router, prefix="/api/knowledge", tags=["knowledge"]
 app.include_router(port_check.router, prefix="/api/port-check", tags=["port-check"])
 app.include_router(compare.router)
 app.include_router(topology.router)  # новый роутер
+app.include_router(vulnerabilities.router)
 
 @app.get("/")
 def root():

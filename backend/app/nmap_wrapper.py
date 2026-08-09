@@ -4,10 +4,14 @@ import uuid
 import os
 import xmltodict
 import json
+import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from .models import HostInfo, PortInfo, ScanStatus
-from .database import save_scan, update_scan, init_db, store_scan_hosts
+from .database import (
+    save_scan, update_scan, init_db, store_scan_hosts,
+    store_vulnerabilities, get_host_id_by_ip
+)
 
 # Инициализация БД при первом импорте
 init_db()
@@ -50,9 +54,10 @@ def build_nmap_args(params: dict) -> List[str]:
 
 
 def parse_nmap_xml(xml_data: str) -> dict:
-    """Парсит XML вывод nmap и возвращает словарь с хостами, включая traceroute."""
+    """Парсит XML вывод nmap и возвращает словарь с хостами и уязвимостями."""
     data = xmltodict.parse(xml_data)
     hosts = []
+    vuln_list = []
     nmap_run = data.get("nmaprun", {})
     host_list = nmap_run.get("host", [])
     
@@ -138,34 +143,57 @@ def parse_nmap_xml(xml_data: str) -> dict:
         else:
             uptime = None
 
-        # --- НОВОЕ: извлечение traceroute ---
-        trace_hops = []
-        trace_elem = host.get("trace", {})
-        if trace_elem:
-            hop_list = trace_elem.get("hop", [])
-            if not isinstance(hop_list, list):
-                hop_list = [hop_list] if hop_list else []
-            for hop in hop_list:
-                if isinstance(hop, dict):
-                    hop_data = {
-                        "ttl": hop.get("@ttl"),
-                        "ip": hop.get("@ip"),
-                        "rtt": hop.get("@rtt"),
-                        "host": hop.get("@host")  # если есть hostname
-                    }
-                    trace_hops.append(hop_data)
+        # Парсинг скриптов (уязвимости)
+        scripts = host.get("scripts", {})
+        script_list = scripts.get("script", [])
+        if not isinstance(script_list, list):
+            script_list = [script_list] if script_list else []
 
-        hosts.append({
-            "ip": ip,
-            "hostname": hostname,
-            "status": state,
-            "ports": [p.dict() for p in port_list],  # конвертируем в dict
-            "os": os_name,
-            "uptime": uptime,
-            "trace": trace_hops  # добавляем traceroute
-        })
+        for script in script_list:
+            script_id = script.get("@id", "")
+            output = script.get("@output", "")
+            if script_id == "vuln" or "vuln" in script_id:
+                cve_matches = re.findall(r'CVE-\d{4}-\d{4,7}', output)
+                cvss_matches = re.findall(r'CVSS:(\d+\.\d+)', output)
+                if cve_matches:
+                    for cve in cve_matches:
+                        cvss = None
+                        for cvss_str in cvss_matches:
+                            try:
+                                cvss = float(cvss_str)
+                                break
+                            except ValueError:
+                                continue
+                        vuln_list.append({
+                            'ip': ip,
+                            'port': None,
+                            'protocol': None,
+                            'cve': cve,
+                            'cvss': cvss,
+                            'description': output[:500]
+                        })
+                elif 'VULNERABILITY' in output.upper():
+                    vuln_list.append({
+                        'ip': ip,
+                        'port': None,
+                        'protocol': None,
+                        'cve': None,
+                        'cvss': None,
+                        'description': output[:500]
+                    })
 
-    return {"hosts": hosts}
+        hosts.append(HostInfo(
+            ip=ip,
+            hostname=hostname,
+            status=state,
+            ports=port_list,
+            os=os_name,
+            uptime=uptime
+        ))
+
+    # Преобразуем HostInfo в dict для хранения в БД
+    hosts_dict = [h.dict() for h in hosts]
+    return {"hosts": hosts_dict, "vulnerabilities": vuln_list}
 
 
 def run_scan(scan_id: str, params: dict):
@@ -179,8 +207,10 @@ def run_scan(scan_id: str, params: dict):
     profile = params.get("profile")
     options = params.get("options", {})
 
+    # Сохраняем начальную запись в БД
     save_scan(scan_id, targets, profile, options, "running", start_time)
 
+    # Сохраняем статус в памяти
     status = ScanStatus(
         scan_id=scan_id,
         status="running",
@@ -190,12 +220,14 @@ def run_scan(scan_id: str, params: dict):
     )
     scan_statuses[scan_id] = status
 
+    # Запуск процесса
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     scan_processes[scan_id] = process
 
     stdout, stderr = process.communicate()
     return_code = process.returncode
 
+    # Удаляем процесс из словаря
     scan_processes.pop(scan_id, None)
 
     end_time = datetime.now().isoformat()
@@ -207,19 +239,31 @@ def run_scan(scan_id: str, params: dict):
             with open(xml_path, 'r') as f:
                 xml_data = f.read()
             parsed = parse_nmap_xml(xml_data)
-            hosts = parsed.get("hosts", [])
-            summary = f"Completed. Found {len(hosts)} hosts."
+            hosts_dict = parsed.get("hosts", [])
+            vulns = parsed.get("vulnerabilities", [])
+            summary = f"Completed. Found {len(hosts_dict)} hosts."
             final_status = "done"
 
+            # Обновляем статус в памяти
             scan_statuses[scan_id].status = "done"
             scan_statuses[scan_id].progress = 100
-            scan_statuses[scan_id].hosts = hosts
+            scan_statuses[scan_id].hosts = hosts_dict
             scan_statuses[scan_id].summary = summary
 
+            # Сохраняем результат в БД
             update_scan(scan_id, final_status, end_time, result_path=xml_path, summary=summary)
+            # Сохраняем структурированные данные хостов и портов
+            store_scan_hosts(scan_id, hosts_dict)
 
-            # Сохраняем структурированные данные (уже есть)
-            store_scan_hosts(scan_id, hosts)
+            # Сохраняем уязвимости, привязывая к host_id
+            for vuln in vulns:
+                host_id = get_host_id_by_ip(scan_id, vuln.get('ip'))
+                if host_id:
+                    vuln['host_id'] = host_id
+                else:
+                    # Если хост не найден, пропускаем (возможно, не сохранился)
+                    continue
+            store_vulnerabilities(scan_id, vulns)
 
         except Exception as e:
             error_msg = f"Parse error: {str(e)}"
@@ -238,6 +282,7 @@ def run_scan(scan_id: str, params: dict):
 
 
 def cancel_scan(scan_id: str) -> bool:
+    """Отменяет сканирование (отправляет SIGTERM)."""
     process = scan_processes.get(scan_id)
     if process:
         process.terminate()

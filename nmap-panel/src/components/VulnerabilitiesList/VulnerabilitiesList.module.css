@@ -1,0 +1,123 @@
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  padding: 12px 16px;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border-default);
+  margin-bottom: 16px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statValue {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.controls > * {
+  flex: 1;
+  min-width: 150px;
+}
+
+.tableWrapper {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 2px solid var(--color-border-default);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border-default);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+  vertical-align: top;
+}
+
+.table tbody tr:hover {
+  background: var(--color-accent-dim);
+}
+
+.cveLink {
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 8px var(--color-accent-glow);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--color-accent-neon);
+}
+
+.cveLink:hover {
+  text-shadow: 0 0 16px var(--color-accent-glow-strong);
+}
+
+.hostInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ip {
+  font-weight: bold;
+}
+
+.hostname {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.descCell {
+  max-width: 300px;
+}
+
+.descText {
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.scanId {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.scanTime {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

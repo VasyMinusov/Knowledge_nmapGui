@@ -6,12 +6,13 @@ import { ScanProgress } from '../ScanProgress/ScanProgress';
 import { HostGrid } from '../HostGrid/HostGrid';
 import { HostDetailsModal } from '../HostDetailsModal/HostDetailsModal';
 import { TopologyGraph } from '../TopologyGraph/TopologyGraph';
+import { VulnerabilitiesList } from '../VulnerabilitiesList/VulnerabilitiesList';
 import type { ScanResultsProps } from './ScanResults.types';
 import styles from './ScanResults.module.css';
 import { nmapApi } from '@/api/nmapApi';
 
 type FilterStatus = 'all' | 'up' | 'down';
-type TabId = 'hosts' | 'topology';
+type TabId = 'hosts' | 'topology' | 'vulnerabilities';
 
 export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => {
   const [search, setSearch] = useState('');
@@ -80,6 +81,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
   const tabs = [
     { id: 'hosts', label: `Hosts (${total})` },
     { id: 'topology', label: 'Topology' },
+    { id: 'vulnerabilities', label: 'Vulnerabilities' },
   ];
 
   return (
@@ -147,6 +149,10 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
                 scanId={status.scan_id}
                 onNodeClick={handleHostClick}
               />
+            )}
+
+            {activeTab === 'vulnerabilities' && (
+              <VulnerabilitiesList scanId={status.scan_id} />
             )}
 
             <HostDetailsModal

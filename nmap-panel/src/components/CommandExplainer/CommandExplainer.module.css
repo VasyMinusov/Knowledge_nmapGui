@@ -1,0 +1,139 @@
+.inputArea {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+
+.inputArea > *:first-child {
+  flex: 1;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0 16px;
+  border-bottom: 2px solid var(--color-border-default);
+  margin-bottom: 16px;
+}
+
+.exampleLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 8px;
+}
+
+.exampleBtn {
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.exampleBtn:hover {
+  border-color: var(--color-accent-neon);
+  box-shadow: 0 0 10px var(--color-accent-glow);
+}
+
+.result {
+  margin-top: 16px;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0 16px;
+  border-bottom: 2px solid var(--color-border-default);
+  margin-bottom: 16px;
+}
+
+.commandDisplay {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-elevated);
+  padding: 4px 12px;
+  border-left: 3px solid var(--color-accent-neon);
+}
+
+.flagsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.flagCard {
+  background: var(--color-bg-elevated);
+  border: 3px ridge var(--color-border-default);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flagHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border-default);
+  padding-bottom: 6px;
+}
+
+.flagCode {
+  font-family: var(--font-mono);
+  font-weight: bold;
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 8px var(--color-accent-glow);
+  font-size: var(--font-size-md);
+}
+
+.flagArg {
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.flagBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+}
+
+.flagName {
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.flagDesc {
+  color: var(--color-text-secondary);
+}
+
+.flagUseCase, .flagExample {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.label {
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 6px var(--color-accent-glow);
+}
+
+.flagUnknown {
+  color: var(--color-danger-base);
+  font-style: italic;
+}
