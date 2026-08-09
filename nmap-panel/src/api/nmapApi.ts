@@ -173,4 +173,11 @@ export const nmapApi = {
     axios.get(`${SCAN_BASE}/${scanId}/report?format=${format}`, {
       responseType: 'blob',
     }),
+
+  // Compare
+  compareScans: (scanId1: string, scanId2: string) =>
+    axios.post<{ scan1: any; scan2: any; diff: any }>(`${SCAN_BASE}/compare`, {
+        scan_id_1: scanId1,
+        scan_id_2: scanId2,
+    }),
 };

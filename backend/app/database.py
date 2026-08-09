@@ -22,11 +22,11 @@ def init_db():
             scan_id TEXT UNIQUE NOT NULL,
             targets TEXT NOT NULL,
             profile TEXT NOT NULL,
-            options TEXT,  -- JSON
+            options TEXT,
             status TEXT NOT NULL,
             start_time TEXT NOT NULL,
             end_time TEXT,
-            result_path TEXT,  -- путь к файлу с результатами (XML/JSON)
+            result_path TEXT,
             summary TEXT
         )
     ''')
@@ -38,19 +38,20 @@ def init_db():
             name TEXT UNIQUE NOT NULL,
             targets TEXT,
             profile TEXT NOT NULL,
-            options TEXT,  -- JSON
+            options TEXT,
             description TEXT,
             created_at TEXT NOT NULL
         )
     ''')
     
+    # Таблица расписаний
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             targets TEXT NOT NULL,
             profile TEXT NOT NULL,
-            options TEXT,  -- JSON
+            options TEXT,
             cron_expression TEXT NOT NULL,
             active BOOLEAN DEFAULT 1,
             created_at TEXT NOT NULL,
@@ -59,10 +60,37 @@ def init_db():
         )
     ''')
 
+    # НОВЫЕ ТАБЛИЦЫ для хранения структурированных результатов
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS scan_hosts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scan_id TEXT NOT NULL,
+            ip TEXT NOT NULL,
+            hostname TEXT,
+            status TEXT,
+            os TEXT,
+            uptime INTEGER,
+            FOREIGN KEY (scan_id) REFERENCES scans(scan_id) ON DELETE CASCADE
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS scan_ports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            host_id INTEGER NOT NULL,
+            port INTEGER NOT NULL,
+            protocol TEXT NOT NULL,
+            state TEXT NOT NULL,
+            service TEXT,
+            version TEXT,
+            FOREIGN KEY (host_id) REFERENCES scan_hosts(id) ON DELETE CASCADE
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
-# Функции для работы со сканами
+# --- Существующие функции (без изменений) ---
 def save_scan(scan_id: str, targets: str, profile: str, options: Optional[Dict], status: str, start_time: str):
     conn = get_db()
     cursor = conn.cursor()
@@ -111,7 +139,7 @@ def delete_scan(scan_id: str) -> bool:
     conn.close()
     return deleted
 
-# Функции для работы с пресетами
+# --- Функции для пресетов ---
 def create_preset(name: str, profile: str, options: Optional[Dict], targets: Optional[str] = None, description: Optional[str] = None):
     conn = get_db()
     cursor = conn.cursor()
@@ -157,7 +185,7 @@ def delete_preset(preset_id: int) -> bool:
     conn.close()
     return deleted
 
-# Функции для работы с расписаниями
+# --- Функции для расписаний ---
 def get_schedules() -> List[Dict]:
     conn = get_db()
     cursor = conn.cursor()
@@ -214,3 +242,41 @@ def update_schedule_last_run(schedule_id: int, last_run: str, last_scan_id: str)
     )
     conn.commit()
     conn.close()
+
+# --- НОВЫЕ ФУНКЦИИ ДЛЯ СТРУКТУРИРОВАННЫХ РЕЗУЛЬТАТОВ ---
+
+def store_scan_hosts(scan_id: str, hosts: List[Dict]):
+    """Сохраняет хосты и порты из распарсенных данных в БД."""
+    conn = get_db()
+    cursor = conn.cursor()
+    # Удаляем старые записи для этого scan_id (если перезапуск)
+    cursor.execute("DELETE FROM scan_hosts WHERE scan_id = ?", (scan_id,))
+    for host in hosts:
+        cursor.execute(
+            "INSERT INTO scan_hosts (scan_id, ip, hostname, status, os, uptime) VALUES (?, ?, ?, ?, ?, ?)",
+            (scan_id, host.get('ip'), host.get('hostname'), host.get('status'), host.get('os'), host.get('uptime'))
+        )
+        host_id = cursor.lastrowid
+        for port in host.get('ports', []):
+            cursor.execute(
+                "INSERT INTO scan_ports (host_id, port, protocol, state, service, version) VALUES (?, ?, ?, ?, ?, ?)",
+                (host_id, port.get('port'), port.get('protocol'), port.get('state'), port.get('service'), port.get('version'))
+            )
+    conn.commit()
+    conn.close()
+
+def get_hosts_by_scan(scan_id: str) -> List[Dict]:
+    """Возвращает список хостов с портами для заданного scan_id."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM scan_hosts WHERE scan_id = ?", (scan_id,))
+    hosts_rows = cursor.fetchall()
+    result = []
+    for host_row in hosts_rows:
+        host = dict(host_row)
+        cursor.execute("SELECT * FROM scan_ports WHERE host_id = ?", (host['id'],))
+        ports_rows = cursor.fetchall()
+        host['ports'] = [dict(p) for p in ports_rows]
+        result.append(host)
+    conn.close()
+    return result

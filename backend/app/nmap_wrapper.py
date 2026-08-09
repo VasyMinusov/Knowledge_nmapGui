@@ -7,7 +7,8 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from .models import HostInfo, PortInfo, ScanStatus
-from .database import save_scan, update_scan, init_db
+from .database import save_scan, update_scan, init_db, store_scan_hosts
+
 
 # Инициализация БД при первом импорте
 init_db()
@@ -210,6 +211,9 @@ def run_scan(scan_id: str, params: dict):
             # Сохраняем результат в БД
             update_scan(scan_id, final_status, end_time, result_path=xml_path, summary=summary)
 
+            # НОВОЕ: сохраняем структурированные данные хостов и портов
+            store_scan_hosts(scan_id, hosts)
+
         except Exception as e:
             error_msg = f"Parse error: {str(e)}"
             summary = error_msg
@@ -224,7 +228,6 @@ def run_scan(scan_id: str, params: dict):
         scan_statuses[scan_id].status = "error"
         scan_statuses[scan_id].summary = summary
         update_scan(scan_id, final_status, end_time, summary=summary)
-
 
 def cancel_scan(scan_id: str) -> bool:
     """Отменяет сканирование (отправляет SIGTERM)."""

@@ -1,0 +1,101 @@
+.selector {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.selector > * {
+  flex: 1;
+  min-width: 200px;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summary {
+  font-size: var(--font-size-lg);
+  padding: 12px 0;
+  border-bottom: 2px solid var(--color-border-default);
+}
+
+.sectionTitle {
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: var(--font-size-md);
+  margin-bottom: 12px;
+}
+
+.hostList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hostCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg-elevated);
+  padding: 6px 12px;
+  border: 2px solid var(--color-border-default);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.ip {
+  font-weight: bold;
+}
+
+.hostname {
+  color: var(--color-text-secondary);
+}
+
+.modifiedCard {
+  background: var(--color-bg-elevated);
+  padding: 12px;
+  border: 2px solid var(--color-accent-dim);
+  margin-bottom: 8px;
+}
+
+.modifiedHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.changesSummary {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.portChanges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.portAdded {
+  background: rgba(102, 255, 51, 0.2);
+  border: 1px solid var(--color-accent-neon);
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.portRemoved {
+  background: rgba(255, 85, 85, 0.2);
+  border: 1px solid var(--color-danger-base);
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-decoration: line-through;
+}
