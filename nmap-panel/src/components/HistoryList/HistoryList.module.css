@@ -1,0 +1,45 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  color: var(--color-text-secondary);
+  border-bottom: 3px solid var(--color-border-default);
+  padding: 8px 12px;
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.row:hover {
+  background: var(--color-accent-dim);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 2px solid currentColor;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  padding: 16px 0;
+}

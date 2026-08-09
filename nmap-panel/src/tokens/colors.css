@@ -1,0 +1,26 @@
+:root {
+  /* Фон — глубокий тёмно-зелёный, но чуть светлее для контраста */
+  --color-bg-primary: #0c120c;
+  --color-bg-secondary: #111a11;
+  --color-bg-tertiary: #182618;
+  --color-bg-elevated: #1f301f;
+
+  /* Кислотный акцент — более яркий и насыщенный */
+  --color-accent-neon: #66ff33;        /* вместо #3dff00 — ярче */
+  --color-accent-dim: rgba(102, 255, 51, 0.3);
+  --color-accent-glow: rgba(102, 255, 51, 0.8);
+  --color-accent-glow-strong: rgba(102, 255, 51, 1);
+
+  /* Опасность — тоже ярче */
+  --color-danger-base: #ff5555;        /* вместо #ff4444 */
+  --color-danger-glow: rgba(255, 85, 85, 0.8);
+
+  /* Текст — более светлый оттенок */
+  --color-text-primary: #ccff66;       /* вместо #b0ff00 */
+  --color-text-secondary: #a8e633;
+  --color-text-muted: #77aa33;
+
+  /* Рамки — ярче */
+  --color-border-default: #66ff33;
+  --color-border-accent: #66ff33;
+}

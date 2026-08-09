@@ -1,0 +1,41 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wrapper.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.box {
+  width: 20px;
+  height: 20px;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.box.checked {
+  border-color: var(--color-accent-neon);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+.svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--color-accent-neon);
+  filter: drop-shadow(0 0 4px var(--color-accent-neon));
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}

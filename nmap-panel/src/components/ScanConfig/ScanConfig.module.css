@@ -1,0 +1,18 @@
+.config {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.optionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 8px 0;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}

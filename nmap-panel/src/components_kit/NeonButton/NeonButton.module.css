@@ -1,0 +1,78 @@
+.button {
+  background: var(--color-bg-tertiary);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-style: outset;
+  border-width: 3px;
+  color: var(--color-accent-neon);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button span {
+  text-shadow: 0 0 6px var(--color-accent-glow-strong);
+}
+
+.sm {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  border-width: 3px;
+}
+.md {
+  padding: 12px 24px;
+  font-size: var(--font-size-md);
+  border-width: 4px;
+}
+.lg {
+  padding: 16px 32px;
+  font-size: var(--font-size-lg);
+  letter-spacing: var(--letter-spacing-wide);
+  border-width: 5px;
+}
+
+.primary {
+  border-color: var(--color-accent-neon);
+  color: var(--color-accent-neon);
+}
+.danger {
+  border-color: var(--color-danger-base);
+  color: var(--color-danger-base);
+}
+
+/* Световая полоса при наведении (будет анимирована framer-motion) */
+.sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent-glow-strong),
+    transparent
+  );
+  pointer-events: none;
+}
+.primary .sweep {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent-glow-strong),
+    transparent
+  );
+}
+.danger .sweep {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-danger-glow),
+    transparent
+  );
+}

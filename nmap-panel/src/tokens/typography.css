@@ -1,0 +1,8 @@
+:root {
+  --font-mono: 'Courier New', Consolas, monospace;
+  --font-display: 'Impact', 'Arial Black', sans-serif;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --letter-spacing-wide: 2px;
+}

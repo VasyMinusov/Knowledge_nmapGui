@@ -1,0 +1,151 @@
+/* src/components/PortChecker/PortChecker.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.hostField {
+  flex: 2;
+  min-width: 200px;
+}
+
+.portInputGroup {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.portActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.checkButton {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 4px;
+}
+
+.quickButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.quickLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+
+.portChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+  min-height: 40px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border-default);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.chipRemove {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.chipRemove:hover {
+  color: var(--color-danger-base);
+}
+
+.emptyChips {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.results {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary {
+  font-size: var(--font-size-md);
+}
+
+.resultTable {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 2px solid var(--color-border-default);
+}
+
+.resultTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.resultTable th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border-default);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.resultTable td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.resultTable tbody tr:hover {
+  background: var(--color-accent-dim);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .checkButton {
+    align-self: flex-start;
+  }
+}

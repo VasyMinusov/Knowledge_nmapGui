@@ -1,0 +1,64 @@
+/* frontend/src/components/HostDetailsModal/HostDetailsModal.module.css */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.label {
+  color: var(--color-text-secondary);
+  min-width: 100px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  margin-top: 8px;
+  border: 2px solid var(--color-border-default);
+}
+
+.portTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  table-layout: fixed;
+}
+
+.portTable th {
+  text-align: left;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border-default);
+  padding: 6px 8px;
+  background: var(--color-bg-elevated);
+}
+
+.portTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border-default);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ширина колонок (можно подстроить) */
+.portTable th:nth-child(1),
+.portTable td:nth-child(1) { width: 15%; }  /* Port */
+.portTable th:nth-child(2),
+.portTable td:nth-child(2) { width: 15%; }  /* Protocol */
+.portTable th:nth-child(3),
+.portTable td:nth-child(3) { width: 15%; }  /* State */
+.portTable th:nth-child(4),
+.portTable td:nth-child(4) { width: 25%; }  /* Service */
+.portTable th:nth-child(5),
+.portTable td:nth-child(5) { width: 30%; }  /* Version */
+
+.openState {
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 8px var(--color-accent-glow);
+}

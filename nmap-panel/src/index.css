@@ -1,0 +1,26 @@
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/shadows.css';
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  text-shadow: 0 0 12px rgba(102, 255, 51, 0.7);   /* было 0.6, увеличен радиус и яркость */
+  letter-spacing: 0.8px;
+  -webkit-font-smoothing: none;
+}
+
+.machine-party-root {
+  text-shadow: 0 0 15px rgba(102, 255, 51, 0.6);   /* было 0.5 */
+  --border-width: 4px;
+}
+
+.machine-party-root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}

@@ -1,0 +1,6 @@
+:root {
+  --shadow-neon-sm: 0 0 15px var(--color-accent-neon);
+  --shadow-neon-md: 0 0 30px var(--color-accent-glow);
+  --shadow-neon-lg: 0 0 50px var(--color-accent-glow-strong), inset 0 0 20px var(--color-accent-glow);
+  --shadow-danger-sm: 0 0 20px var(--color-danger-glow);
+}

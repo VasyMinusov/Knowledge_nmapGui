@@ -1,0 +1,46 @@
+{
+  "name": "machine-party-kit",
+  "version": "1.0.0",
+  "description": "Industrial neon UI kit for React",
+  "type": "module",
+  "main": "dist/machine-party-kit.cjs.js",
+  "module": "dist/machine-party-kit.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/machine-party-kit.es.js",
+      "require": "./dist/machine-party-kit.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build-lib": "vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build-lib"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "motion": "^13.0.0",
+    "react-icons": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}

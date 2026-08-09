@@ -1,0 +1,17 @@
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.low {
+  filter: drop-shadow(0 0 6px var(--color-accent-neon));
+}
+
+.medium {
+  filter: drop-shadow(0 0 12px var(--color-accent-neon));
+}
+
+.high {
+  filter: drop-shadow(0 0 20px var(--color-accent-neon));
+}
