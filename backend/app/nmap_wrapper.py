@@ -7,11 +7,8 @@ import json
 import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-from .models import HostInfo, PortInfo, ScanStatus
-from .database import (
-    save_scan, update_scan, init_db, store_scan_hosts,
-    store_vulnerabilities, get_host_id_by_ip
-)
+from app.models import HostInfo, PortInfo, ScanStatus
+from app.database import save_scan, update_scan, init_db, store_scan_hosts, store_vulnerabilities, get_host_id_by_ip
 
 # Инициализация БД при первом импорте
 init_db()

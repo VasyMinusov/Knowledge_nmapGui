@@ -1,7 +1,7 @@
 # backend/app/routes/compare.py
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
-from ..database import get_hosts_by_scan, get_scan_by_id
+from app.database import get_hosts_by_scan, get_scan_by_id
 
 router = APIRouter(prefix="/api/scan/compare", tags=["compare"])
 

@@ -61,3 +61,4 @@ to_text.sh
 create_files.sh
 **/scans/
 all_files_content.txt
+*.spec

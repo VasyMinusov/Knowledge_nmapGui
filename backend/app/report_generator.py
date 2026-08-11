@@ -9,9 +9,9 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from docx import Document
-from .nmap_wrapper import parse_nmap_xml
-from .database import get_scan_by_id
-from .models import HostInfo  # <-- импорт модели
+from app.nmap_wrapper import parse_nmap_xml
+from app.database import get_scan_by_id
+from app.models import HostInfo
 
 def generate_html_report(scan_data: Dict, hosts: List[HostInfo]) -> str:
     """Генерирует HTML-отчёт."""

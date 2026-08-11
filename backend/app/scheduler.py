@@ -6,8 +6,8 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.jobstores.base import JobLookupError
-from .database import get_schedules, get_schedule, update_schedule_last_run
-from .nmap_wrapper import run_scan
+from app.database import get_schedules, get_schedule, update_schedule_last_run
+from app.nmap_wrapper import run_scan
 
 scheduler = BackgroundScheduler()
 scheduler.start()

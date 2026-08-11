@@ -2,8 +2,8 @@
 import os
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
-from ..database import get_scan_by_id, get_hosts_by_scan
-from ..nmap_wrapper import parse_nmap_xml
+from app.database import get_scan_by_id, get_hosts_by_scan
+from app.nmap_wrapper import parse_nmap_xml
 import xmltodict
 
 router = APIRouter(prefix="/api/scan/topology", tags=["topology"])

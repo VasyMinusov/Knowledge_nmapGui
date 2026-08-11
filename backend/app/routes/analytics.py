@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from ..database import get_db
+from app.database import get_db
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 

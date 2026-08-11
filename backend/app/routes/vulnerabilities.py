@@ -1,7 +1,6 @@
 # backend/app/routes/vulnerabilities.py
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Dict, Optional
-from ..database import get_vulnerabilities_by_scan, get_all_vulnerabilities, get_vulnerability_stats, get_scan_by_id
+from app.database import get_vulnerabilities_by_scan, get_all_vulnerabilities, get_vulnerability_stats, get_scan_by_id
 
 router = APIRouter(prefix="/api/vulnerabilities", tags=["vulnerabilities"])
 
