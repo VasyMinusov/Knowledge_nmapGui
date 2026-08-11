@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nmap-backend
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - ./scans:/app/scans     
+      - ./backend/nmap_panel.db:/app/nmap_panel.db  
+    environment:
+      - DB_PATH=/app/nmap_panel.db 
+    ports:
+      - "8000:8000"          
+    networks:
+      - nmap-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nmap-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"              
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro   
+      - ./nmap-panel/dist:/usr/share/nginx/html:ro             
+    depends_on:
+      - backend
+    networks:
+      - nmap-network
+
+networks:
+  nmap-network:
+    driver: bridge
