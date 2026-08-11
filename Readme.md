@@ -232,13 +232,13 @@ Swagger-документация API: http://localhost:5000/docs
 2. Установите зависимости Node.js:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. Запустите сервер разработки:
 
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 Фронтенд будет доступен по адресу: http://localhost:5173
