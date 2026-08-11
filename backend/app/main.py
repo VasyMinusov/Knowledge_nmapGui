@@ -12,7 +12,7 @@ app = FastAPI(title="Nmap Panel API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # можно оставить для dev
+    allow_origins=["*"],  # можно оставить для dev
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

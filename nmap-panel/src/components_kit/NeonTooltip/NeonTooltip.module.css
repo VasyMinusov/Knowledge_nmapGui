@@ -37,3 +37,17 @@
   top: 50%;
   transform: translateY(-50%);
 }
+
+.tooltipPortal {
+  /* Наследуем все базовые стили от .tooltip, но переопределяем position и transform */
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-accent-neon);
+  color: var(--color-accent-neon);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  padding: 4px 8px;
+  white-space: nowrap;
+  box-shadow: var(--shadow-neon-sm);
+  pointer-events: none;
+  /* Дополнительно можно задать max-width, если нужно */
+}
