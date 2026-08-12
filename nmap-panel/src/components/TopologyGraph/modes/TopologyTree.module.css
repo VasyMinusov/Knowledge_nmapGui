@@ -3,7 +3,7 @@
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   padding: 4px 0;
-  max-height: 500px;
+  max-height: 600px; /* увеличено с 500px */
   overflow-y: auto;
 }
 
@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 6px 12px;
   cursor: pointer;
   background: var(--color-bg-elevated);
   border-left: 4px solid var(--color-accent-neon);
@@ -48,7 +48,7 @@
 }
 
 .hostList {
-  padding-left: 24px;
+  padding-left: 28px; /* чуть больше отступ */
   border-left: 2px dashed var(--color-border-default);
   margin-left: 12px;
 }
@@ -56,10 +56,10 @@
 .hostItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 10px;
+  padding: 6px 10px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(102, 255, 51, 0.1);
+  border-bottom: 1px solid rgba(102, 255, 51, 0.08);
   transition: background 0.15s;
 }
 
@@ -96,9 +96,10 @@
 
 .hostStatus {
   margin-left: auto;
-  padding: 0 6px;
+  padding: 0 8px;
   font-size: var(--font-size-sm);
   border: 1px solid;
+  text-transform: uppercase;
 }
 .hostItem.up .hostStatus {
   color: var(--color-accent-neon);

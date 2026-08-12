@@ -1,10 +1,11 @@
+/* src/components/TopologyGraph/modes/TopologyTable.module.css */
 .searchBar {
   margin-bottom: 12px;
-  max-width: 300px;
+  max-width: 350px;
 }
 
 .tableWrapper {
-  max-height: 500px;
+  max-height: 600px; /* увеличено с 500px */
   overflow-y: auto;
   border: 2px solid var(--color-border-default);
 }
@@ -18,7 +19,7 @@
 
 .table th {
   text-align: left;
-  padding: 8px 12px;
+  padding: 8px 14px;
   background: var(--color-bg-elevated);
   color: var(--color-text-secondary);
   border-bottom: 2px solid var(--color-border-default);
@@ -34,8 +35,9 @@
 }
 
 .table td {
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-bottom: 1px solid var(--color-border-default);
+  vertical-align: middle;
 }
 
 .table tbody tr {
@@ -55,9 +57,10 @@
 }
 
 .statusBadge {
-  padding: 2px 8px;
+  padding: 2px 10px;
   border: 1px solid;
   font-size: var(--font-size-sm);
+  text-transform: uppercase;
 }
 .statusBadge.up {
   color: var(--color-accent-neon);

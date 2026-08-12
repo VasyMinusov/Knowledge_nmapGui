@@ -1,3 +1,4 @@
+/* src/components/TopologyGraph/modes/TopologyGrid.module.css */
 .gridContainer {
   display: flex;
   flex-direction: column;
@@ -40,7 +41,7 @@
 
 .hostGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* увеличено с 140px */
   gap: 12px;
 }
 
@@ -54,6 +55,7 @@
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
+  min-height: 100px;
 }
 
 .hostTile:hover {
@@ -88,7 +90,7 @@
 .ip {
   font-family: var(--font-mono);
   font-weight: bold;
-  font-size: 11px;
+  font-size: 12px; /* было 11px */
   word-break: break-all;
   margin-top: 4px;
   text-align: center;
@@ -96,12 +98,12 @@
 
 .hostname {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px; /* было 9px */
   color: var(--color-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100px;
+  max-width: 120px;
 }
 
 .portBadge {
@@ -110,9 +112,9 @@
   right: -6px;
   background: var(--color-accent-neon);
   color: #000;
-  font-size: 10px;
+  font-size: 11px; /* было 10px */
   font-weight: bold;
-  padding: 0 6px;
+  padding: 0 8px;
   border: 2px solid var(--color-bg-primary);
   border-radius: 2px;
   box-shadow: 0 0 8px var(--color-accent-neon);
@@ -128,16 +130,16 @@
 
 .portChip {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px; /* было 8px */
   background: var(--color-bg-primary);
-  padding: 0 4px;
+  padding: 0 6px;
   border: 1px solid var(--color-accent-neon);
   color: var(--color-accent-neon);
 }
 
 .more {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
   color: var(--color-text-secondary);
 }
 
