@@ -10,6 +10,13 @@
   padding: 24px;
 }
 
+.body {
+  padding: 20px 16px;
+  color: var(--color-text-primary);
+  max-height: 70vh;          /* ограничение высоты */
+  overflow-y: auto;          /* вертикальная прокрутка */
+}
+
 .modal {
   position: relative;
   width: 100%;
@@ -151,11 +158,6 @@
   border-color: var(--color-danger-base);
   color: var(--color-danger-base);
   box-shadow: var(--shadow-danger-sm);
-}
-
-.body {
-  padding: 20px 16px;
-  color: var(--color-text-primary);
 }
 
 .footer {

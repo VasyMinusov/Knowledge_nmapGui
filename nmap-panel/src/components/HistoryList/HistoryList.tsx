@@ -1,3 +1,4 @@
+// src/components/HistoryList/HistoryList.tsx
 import React from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { StatusBadge, NeonButton, NeonTooltip } from '@/components_kit';
@@ -43,7 +44,6 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                 />
               </div>
               <div className={styles.cell}>{item.summary || '—'}</div>
-              {/* Используем отдельный класс для контейнера действий */}
               <div className={styles.cellActions} onClick={(e) => e.stopPropagation()}>
                 <NeonTooltip content="Просмотреть результаты">
                   <NeonButton size="sm" onClick={() => onView(item.scan_id)}>Просмотр</NeonButton>

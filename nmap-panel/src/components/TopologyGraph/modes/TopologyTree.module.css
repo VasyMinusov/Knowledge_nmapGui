@@ -1,0 +1,122 @@
+/* src/components/TopologyGraph/modes/TopologyTree.module.css */
+.tree {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  padding: 4px 0;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.subnet {
+  margin-bottom: 4px;
+}
+
+.subnetHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  background: var(--color-bg-elevated);
+  border-left: 4px solid var(--color-accent-neon);
+  transition: background 0.15s;
+}
+
+.subnetHeader:hover {
+  background: var(--color-accent-dim);
+}
+
+.expandIcon {
+  color: var(--color-accent-neon);
+  display: flex;
+  align-items: center;
+}
+
+.subnetIcon {
+  color: var(--color-accent-neon);
+  font-size: 18px;
+}
+
+.subnetName {
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.hostCount {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.hostList {
+  padding-left: 24px;
+  border-left: 2px dashed var(--color-border-default);
+  margin-left: 12px;
+}
+
+.hostItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(102, 255, 51, 0.1);
+  transition: background 0.15s;
+}
+
+.hostItem:hover {
+  background: var(--color-accent-dim);
+}
+
+.hostItem.up .hostIp {
+  color: var(--color-accent-neon);
+}
+.hostItem.down .hostIp {
+  color: #666;
+}
+
+.hostIcon {
+  display: flex;
+  align-items: center;
+}
+
+.hostIp {
+  font-weight: bold;
+  font-size: var(--font-size-sm);
+}
+
+.hostname {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.hostOs {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.hostStatus {
+  margin-left: auto;
+  padding: 0 6px;
+  font-size: var(--font-size-sm);
+  border: 1px solid;
+}
+.hostItem.up .hostStatus {
+  color: var(--color-accent-neon);
+  border-color: var(--color-accent-neon);
+}
+.hostItem.down .hostStatus {
+  color: #666;
+  border-color: #666;
+}
+
+.portCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-left: 8px;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  padding: 20px;
+  text-align: center;
+}

@@ -67,7 +67,7 @@ def parse_nmap_xml(xml_data: str) -> dict:
         if not isinstance(host, dict):
             continue
 
-        # Адрес — может быть несколько, берём первый ipv4
+        # --- Адрес ---
         address_elem = host.get("address")
         ip = "unknown"
         if isinstance(address_elem, list):
@@ -81,113 +81,117 @@ def parse_nmap_xml(xml_data: str) -> dict:
             ip = address_elem.get("@addr", "unknown")
         # если address_elem None, ip остаётся "unknown"
 
-        # Hostname
-        hostnames = host.get("hostnames", {})
-        hostname_elem = hostnames.get("hostname")
-        if isinstance(hostname_elem, list):
-            hostname = hostname_elem[0].get("@name") if hostname_elem else None
-        elif isinstance(hostname_elem, dict):
-            hostname = hostname_elem.get("@name")
-        else:
-            hostname = None
+        # --- Hostname ---
+        hostnames = host.get("hostnames")
+        hostname = None
+        if isinstance(hostnames, dict):
+            hostname_elem = hostnames.get("hostname")
+            if isinstance(hostname_elem, list):
+                if hostname_elem:
+                    hostname = hostname_elem[0].get("@name")
+            elif isinstance(hostname_elem, dict):
+                hostname = hostname_elem.get("@name")
+        # если hostnames None или не словарь, hostname остаётся None
 
-        # Статус
-        status_elem = host.get("status", {})
+        # --- Статус ---
+        status_elem = host.get("status")
         if isinstance(status_elem, dict):
             state = status_elem.get("@state", "unknown")
         else:
             state = "unknown"
 
-        # Порты
-        ports_elem = host.get("ports", {})
-        port_list_raw = ports_elem.get("port", [])
-        if not isinstance(port_list_raw, list):
-            port_list_raw = [port_list_raw] if port_list_raw else []
-
+        # --- Порты ---
+        ports_elem = host.get("ports")
         port_list = []
-        for p in port_list_raw:
-            if not isinstance(p, dict):
-                continue
-            port_id = int(p.get("@portid", 0))
-            protocol = p.get("@protocol", "tcp")
-            state_elem = p.get("state", {})
-            if isinstance(state_elem, dict):
-                state = state_elem.get("@state", "unknown")
-            else:
-                state = "unknown"
-            service_elem = p.get("service", {})
-            if isinstance(service_elem, dict):
-                service = service_elem.get("@name")
-                version = service_elem.get("@version")
-            else:
-                service = None
-                version = None
-            port_list.append(PortInfo(
-                port=port_id,
-                protocol=protocol,
-                state=state,
-                service=service,
-                version=version
-            ))
+        if isinstance(ports_elem, dict):
+            port_list_raw = ports_elem.get("port", [])
+            if not isinstance(port_list_raw, list):
+                port_list_raw = [port_list_raw] if port_list_raw else []
+            for p in port_list_raw:
+                if not isinstance(p, dict):
+                    continue
+                port_id = int(p.get("@portid", 0))
+                protocol = p.get("@protocol", "tcp")
+                state_elem = p.get("state")
+                if isinstance(state_elem, dict):
+                    port_state = state_elem.get("@state", "unknown")
+                else:
+                    port_state = "unknown"
+                service_elem = p.get("service")
+                if isinstance(service_elem, dict):
+                    service = service_elem.get("@name")
+                    version = service_elem.get("@version")
+                else:
+                    service = None
+                    version = None
+                port_list.append(PortInfo(
+                    port=port_id,
+                    protocol=protocol,
+                    state=port_state,
+                    service=service,
+                    version=version
+                ))
 
-        # OS
-        os_elem = host.get("os", {})
-        osmatch = os_elem.get("osmatch")
-        if isinstance(osmatch, list):
-            os_name = osmatch[0].get("@name") if osmatch else None
-        elif isinstance(osmatch, dict):
-            os_name = osmatch.get("@name")
-        else:
-            os_name = None
+        # --- OS ---
+        os_elem = host.get("os")
+        os_name = None
+        if isinstance(os_elem, dict):
+            osmatch = os_elem.get("osmatch")
+            if isinstance(osmatch, list):
+                if osmatch:
+                    os_name = osmatch[0].get("@name")
+            elif isinstance(osmatch, dict):
+                os_name = osmatch.get("@name")
+        # если os_elem None, os_name остаётся None
 
-        # Uptime
-        uptime_elem = host.get("uptime", {})
+        # --- Uptime ---
+        uptime_elem = host.get("uptime")
+        uptime = None
         if isinstance(uptime_elem, dict):
             uptime = uptime_elem.get("@seconds")
-        else:
-            uptime = None
 
-        # Парсинг скриптов (уязвимости)
-        scripts = host.get("scripts", {})
-        script_list = scripts.get("script", [])
-        if not isinstance(script_list, list):
-            script_list = [script_list] if script_list else []
-
-        for script in script_list:
-            script_id = script.get("@id", "")
-            output = script.get("@output", "")
-            if script_id == "vuln" or "vuln" in script_id:
-                cve_matches = re.findall(r'CVE-\d{4}-\d{4,7}', output)
-                cvss_matches = re.findall(r'CVSS:(\d+\.\d+)', output)
-                if cve_matches:
-                    for cve in cve_matches:
-                        cvss = None
-                        for cvss_str in cvss_matches:
-                            try:
-                                cvss = float(cvss_str)
-                                break
-                            except ValueError:
-                                continue
+        # --- Скрипты (уязвимости) ---
+        scripts = host.get("scripts")
+        if isinstance(scripts, dict):
+            script_list = scripts.get("script", [])
+            if not isinstance(script_list, list):
+                script_list = [script_list] if script_list else []
+            for script in script_list:
+                if not isinstance(script, dict):
+                    continue
+                script_id = script.get("@id", "")
+                output = script.get("@output", "")
+                if script_id == "vuln" or "vuln" in script_id:
+                    cve_matches = re.findall(r'CVE-\d{4}-\d{4,7}', output)
+                    cvss_matches = re.findall(r'CVSS:(\d+\.\d+)', output)
+                    if cve_matches:
+                        for cve in cve_matches:
+                            cvss = None
+                            for cvss_str in cvss_matches:
+                                try:
+                                    cvss = float(cvss_str)
+                                    break
+                                except ValueError:
+                                    continue
+                            vuln_list.append({
+                                'ip': ip,
+                                'port': None,
+                                'protocol': None,
+                                'cve': cve,
+                                'cvss': cvss,
+                                'description': output[:500]
+                            })
+                    elif 'VULNERABILITY' in output.upper():
                         vuln_list.append({
                             'ip': ip,
                             'port': None,
                             'protocol': None,
-                            'cve': cve,
-                            'cvss': cvss,
+                            'cve': None,
+                            'cvss': None,
                             'description': output[:500]
                         })
-                elif 'VULNERABILITY' in output.upper():
-                    vuln_list.append({
-                        'ip': ip,
-                        'port': None,
-                        'protocol': None,
-                        'cve': None,
-                        'cvss': None,
-                        'description': output[:500]
-                    })
 
-        # Добавляем хост даже если ip = "unknown", но лучше пропускать такие?
-        # Пропускаем хосты без IP
+        # Добавляем хост, если IP не "unknown"
         if ip != "unknown":
             hosts.append(HostInfo(
                 ip=ip,

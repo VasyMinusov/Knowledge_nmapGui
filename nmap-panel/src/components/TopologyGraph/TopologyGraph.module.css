@@ -1,37 +1,34 @@
-.graphContainer {
-  width: 100%;
-  height: 550px !important;
-  min-height: 550px;
-  max-height: 550px;
-  border: 3px solid var(--color-border-default);
-  background: var(--color-bg-primary);
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 12px 0 0;
-  border-top: 1px solid var(--color-border-default);
-  margin-top: 12px;
-}
-
-.legendItem {
+.header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.scanId {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 
-.legendColor {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 2px;
-  flex-shrink: 0;
+.modeSwitcher {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.content {
+  max-height: 550px;
+  overflow-y: auto;
+}
+
+.loading, .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--color-text-secondary);
+  gap: 8px;
 }

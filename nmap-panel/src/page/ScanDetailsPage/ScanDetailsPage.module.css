@@ -1,0 +1,65 @@
+/* src/pages/ScanDetailsPage/ScanDetailsPage.module.css */
+.page {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-primary);
+  z-index: 10000;
+  padding: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.scanInfo {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.content {
+  flex: 1;
+  margin-top: 16px;
+  overflow: auto;
+  resize: vertical;
+  min-height: 200px;
+  max-height: 80vh;
+  border: 2px solid var(--color-border-default);
+  padding: 12px;
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.loading, .error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+}
