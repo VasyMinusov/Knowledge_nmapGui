@@ -1,6 +1,7 @@
 // src/components/TopologyGraph/modes/TopologyGraphD3.tsx
 import React, { useRef, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
+import { useTheme } from '../../../context/ThemeContext';
 import type { HostInfo } from '@/api/nmapApi';
 import styles from './TopologyGraphD3.module.css';
 
@@ -22,6 +23,25 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
+  const { theme } = useTheme();
+
+  const colors = useMemo(() => {
+    const isGreen = theme === 'green';
+    return {
+      accent: isGreen ? '#66ff33' : '#ffb800',
+      accentGlow: isGreen ? 'rgba(102,255,51,0.8)' : 'rgba(255,184,0,0.8)',
+      accentDim: isGreen ? 'rgba(102,255,51,0.2)' : 'rgba(255,184,0,0.2)',
+      text: isGreen ? '#ccff66' : '#ffdd66',
+      secondary: isGreen ? '#a8e633' : '#e6b800',
+      muted: isGreen ? '#77aa33' : '#a67c00',
+      danger: isGreen ? '#ff5555' : '#3399ff',
+      bgNode: isGreen ? '#0c1a0c' : '#1a140e',
+      bgRouter: isGreen ? '#0f1f0f' : '#1f180f',
+      link: isGreen ? '#1a3d1a' : '#3d2a1a',
+      nodeStroke: isGreen ? '#66ff33' : '#ffb800',
+      routerStroke: isGreen ? '#a8e633' : '#e6b800',
+    };
+  }, [theme]);
 
   const { nodes, links } = useMemo(() => {
     const nodeMap = new Map<string, GraphNode>();
@@ -70,13 +90,11 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
 
     const g = svg.append('g');
 
-    // Zoom
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.3, 2])
       .on('zoom', (event) => g.attr('transform', event.transform));
     svg.call(zoom);
 
-    // Симуляция с быстрым затуханием
     const simulation = d3.forceSimulation<GraphNode>(nodes)
       .force('charge', d3.forceManyBody().strength(-150))
       .force('link', d3.forceLink<GraphNode, GraphLink>(links).id(d => d.id).distance(100))
@@ -87,16 +105,14 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
 
     simulationRef.current = simulation;
 
-    // Линии
     const linkGroup = g.append('g').attr('class', 'links');
     const linkLines = linkGroup.selectAll('line')
       .data(links)
       .enter()
       .append('line')
-      .attr('stroke', '#1a3d1a')
+      .attr('stroke', colors.link)
       .attr('stroke-width', 2);
 
-    // Узлы
     const nodeGroup = g.append('g').attr('class', 'nodes');
     const nodeEnter = nodeGroup.selectAll('g.node')
       .data(nodes)
@@ -104,11 +120,9 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
       .append('g')
       .attr('class', 'node')
       .attr('cursor', 'pointer')
-      .on('click', (event, d) => {
-        // Фиксируем узел при клике
+      .on('click', (_event, d) => {   // ← исправлено: _event вместо event
         d.fx = d.x;
         d.fy = d.y;
-        // Если это хост, вызываем колбэк
         if (d.group === 'host' && onNodeClick) {
           const host = hosts.find(h => h.ip === d.id);
           if (host) onNodeClick(host);
@@ -124,13 +138,11 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
           d.fx = event.x;
           d.fy = event.y;
         })
-        .on('end', (event, d) => {
+        .on('end', (event, _d) => {
           if (!event.active) simulation.alphaTarget(0);
-          // Оставляем фиксацию
         })
       );
 
-    // Фигура узла
     nodeEnter.each(function(d) {
       const sel = d3.select(this);
       if (d.group === 'router') {
@@ -139,35 +151,32 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
           .attr('height', 40)
           .attr('x', -20)
           .attr('y', -20)
-          .attr('fill', '#0f1f0f')
-          .attr('stroke', '#a8e633')
+          .attr('fill', colors.bgRouter)
+          .attr('stroke', colors.routerStroke)
           .attr('stroke-width', 2);
       } else {
         sel.append('circle')
           .attr('r', 20)
-          .attr('fill', d.status === 'up' ? '#0c1a0c' : '#151515')
-          .attr('stroke', d.status === 'up' ? '#66ff33' : '#555')
+          .attr('fill', d.status === 'up' ? colors.bgNode : '#151515')
+          .attr('stroke', d.status === 'up' ? colors.nodeStroke : '#555')
           .attr('stroke-width', 2);
       }
     });
 
-    // Текст внутри
     nodeEnter.append('text')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('fill', d => d.group === 'router' ? '#a8e633' : (d.status === 'up' ? '#ccff66' : '#777'))
+      .attr('fill', d => d.group === 'router' ? colors.secondary : (d.status === 'up' ? colors.text : '#777'))
       .attr('font-size', '12px')
       .text(d => d.group === 'router' ? '◈' : '●');
 
-    // Подпись
     nodeEnter.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', d => d.group === 'router' ? 32 : 28)
-      .attr('fill', '#ccff66')
+      .attr('fill', colors.text)
       .attr('font-size', '8px')
       .text(d => d.label.length > 10 ? d.label.slice(0, 8) + '..' : d.label);
 
-    // Обновление позиций
     simulation.on('tick', () => {
       linkLines
         .attr('x1', d => (d.source as GraphNode).x!)
@@ -178,16 +187,13 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
       nodeEnter.attr('transform', d => `translate(${d.x}, ${d.y})`);
     });
 
-    // Остановка после стабилизации
-    setTimeout(() => {
-      simulation.alphaTarget(0);
-    }, 3000);
+    setTimeout(() => simulation.alphaTarget(0), 3000);
 
     return () => {
       simulation.stop();
       simulationRef.current = null;
     };
-  }, [nodes, links, hosts, onNodeClick]);
+  }, [nodes, links, hosts, onNodeClick, colors]);
 
   return (
     <div ref={containerRef} className={styles.graphContainer}>
