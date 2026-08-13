@@ -1,10 +1,10 @@
-# backend/app/database.py
 import sqlite3
 import json
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+import os
 
-DB_PATH = "nmap_panel.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nmap_panel.db")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
