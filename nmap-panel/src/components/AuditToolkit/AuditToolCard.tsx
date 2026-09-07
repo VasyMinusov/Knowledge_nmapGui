@@ -10,6 +10,8 @@ const CATEGORY_ICON: Record<string, string> = {
   dirs: '🗂',
   web_vuln: '☣',
   tls: '🔐',
+  osint: '🔎',
+  network: '🌐',
 };
 
 export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, running, onRun }) => {
@@ -19,9 +21,11 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
   const [extensions, setExtensions] = useState('');
   const [aggression, setAggression] = useState('1');
   const [severity, setSeverity] = useState('low,medium,high,critical');
+  const [wpEnumerate, setWpEnumerate] = useState('vp,vt,u');
+  const [allSources, setAllSources] = useState(false);
 
   const hasOptions = tool.category === 'tls' || tool.category === 'dirs'
-    || tool.id === 'whatweb' || tool.id === 'nuclei';
+    || ['whatweb', 'nuclei', 'wpscan', 'subfinder'].includes(tool.id);
 
   const collectOptions = (): Record<string, unknown> => {
     const o: Record<string, unknown> = {};
@@ -32,6 +36,8 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
     }
     if (tool.id === 'whatweb') o.aggression = Number(aggression) || 1;
     if (tool.id === 'nuclei') o.severity = severity;
+    if (tool.id === 'wpscan') o.enumerate = wpEnumerate;
+    if (tool.id === 'subfinder') o.all = allSources;
     return o;
   };
 
@@ -95,6 +101,30 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
                 { value: 'medium,high,critical', label: 'medium и выше' },
                 { value: 'high,critical', label: 'high и critical' },
                 { value: 'critical', label: 'только critical' },
+              ]}
+            />
+          )}
+          {tool.id === 'wpscan' && (
+            <NeonSelect
+              label="Перечислять"
+              value={wpEnumerate}
+              onChange={setWpEnumerate}
+              options={[
+                { value: 'vp,vt,u', label: 'уязв. плагины/темы + юзеры' },
+                { value: 'vp', label: 'только уязвимые плагины' },
+                { value: 'ap,at,u', label: 'все плагины/темы + юзеры' },
+                { value: 'u', label: 'только пользователи' },
+              ]}
+            />
+          )}
+          {tool.id === 'subfinder' && (
+            <NeonSelect
+              label="Источники"
+              value={allSources ? 'all' : 'fast'}
+              onChange={(v) => setAllSources(v === 'all')}
+              options={[
+                { value: 'fast', label: 'быстрые (по умолчанию)' },
+                { value: 'all', label: 'все источники (медленно)' },
               ]}
             />
           )}

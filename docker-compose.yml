@@ -3,16 +3,23 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        # slim = только apt-инструменты (быстрая сборка); full = + Go/pipx/testssl
+        TOOLS_PROFILE: ${TOOLS_PROFILE:-full}
     container_name: nmap-backend
     restart: unless-stopped
     volumes:
       - ./backend:/app
-      - ./scans:/app/scans     
-      - ./backend/nmap_panel.db:/app/nmap_panel.db  
+      - ./scans:/app/scans
+      - ./backend/nmap_panel.db:/app/nmap_panel.db
+      # изолируем рабочие каталоги запусков и кэш инструментов от хоста
+      - audit-runs:/app/audit_runs
+      - terminal-runs:/app/terminal_runs
+      - tool-cache:/root/.config
     environment:
-      - DB_PATH=/app/nmap_panel.db 
+      - DB_PATH=/app/nmap_panel.db
     ports:
-      - "5000:5000"          
+      - "5000:5000"
     networks:
       - nmap-network
 
@@ -33,3 +40,8 @@ services:
 networks:
   nmap-network:
     driver: bridge
+
+volumes:
+  audit-runs:
+  terminal-runs:
+  tool-cache:

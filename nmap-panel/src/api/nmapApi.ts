@@ -8,6 +8,7 @@ const PORT_CHECK_BASE = 'http://localhost:5000/api/port-check';
 const VULN_BASE = 'http://localhost:5000/api/vulnerabilities';
 const ANALYTICS_BASE = 'http://localhost:5000/api/analytics';
 const AUDIT_BASE = 'http://localhost:5000/api/audit';
+const TERMINAL_BASE = 'http://localhost:5000/api/terminal';
 
 // --- Типы для сканирования ---
 export interface ScanOptions {
@@ -197,6 +198,65 @@ export const auditApi = {
     ),
   deleteTask: (taskId: string) =>
     axios.delete(`${AUDIT_BASE}/task/${taskId}`),
+};
+
+// --- Типы для встроенного терминала ---
+export type TerminalFlagType = 'bool' | 'text' | 'choice' | 'number';
+
+export interface TerminalFlag {
+  flag: string;
+  label: string;
+  description: string;
+  type: TerminalFlagType;
+  choices?: string[];
+  placeholder?: string;
+  default?: string;
+  group?: string;
+}
+
+export interface TerminalToolTarget {
+  kind: 'url' | 'host';
+  flag: string;
+  placeholder?: string;
+  prefix_subcommand?: string;
+}
+
+export interface TerminalTool {
+  id: string;
+  name: string;
+  binary: string;
+  category: string;
+  description: string;
+  target: TerminalToolTarget;
+  examples: string[];
+  flags: TerminalFlag[];
+  available: boolean;
+}
+
+export interface TerminalCatalog {
+  tools: TerminalTool[];
+  binaries: Record<string, boolean>;
+  allowed: string[];
+}
+
+export interface TerminalSessionState {
+  session_id: string;
+  command: string;
+  chunk: string;
+  cursor: number;
+  running: boolean;
+  exit_code: number | null;
+}
+
+export const terminalApi = {
+  getCatalog: () => axios.get<TerminalCatalog>(`${TERMINAL_BASE}/catalog`),
+  exec: (command: string) =>
+    axios.post<{ session_id: string; warnings: string[] }>(`${TERMINAL_BASE}/exec`, { command }),
+  poll: (sessionId: string, cursor: number) =>
+    axios.get<TerminalSessionState>(`${TERMINAL_BASE}/session/${sessionId}?cursor=${cursor}`),
+  signal: (sessionId: string, sig: 'int' | 'kill' = 'int') =>
+    axios.post(`${TERMINAL_BASE}/session/${sessionId}/signal`, { signal: sig }),
+  close: (sessionId: string) => axios.delete(`${TERMINAL_BASE}/session/${sessionId}`),
 };
 
 // --- API вызовы ---

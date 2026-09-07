@@ -256,6 +256,103 @@ def parse_ffuf(out: str, err: str) -> List[Finding]:
     return findings
 
 
+def _lines(out: str):
+    for line in (out or "").splitlines():
+        yield re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+
+
+def parse_hostlist(out: str, err: str) -> List[Finding]:
+    """Общий парсер: по имени хоста/поддомену на строку (subfinder, assetfinder…)."""
+    findings: List[Finding] = []
+    seen = set()
+    for clean in _lines(out):
+        m = re.match(r"^([A-Za-z0-9._-]+\.[A-Za-z]{2,})(?:\s|$)", clean)
+        if m and m.group(1) not in seen:
+            seen.add(m.group(1))
+            findings.append(_mk(m.group(1), "поддомен/хост", "info"))
+    if not findings:
+        findings.append(_mk("Ничего не найдено", "", "info"))
+    return findings
+
+
+def parse_httpx(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        if not clean or not clean.startswith(("http://", "https://")):
+            continue
+        codes = re.findall(r"\[(\d{3})\]", clean)
+        sev = "info"
+        if any(c.startswith("5") for c in codes):
+            sev = "low"
+        findings.append(_mk(clean.split()[0], clean.partition(" ")[2] or " ".join(codes), sev))
+    return findings or [_mk("Живых хостов не найдено", "", "info")]
+
+
+def parse_dnsx(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        m = re.match(r"^([A-Za-z0-9._-]+)\s+\[([A-Z]+)\]\s+\[(.+?)\]", clean)
+        if m:
+            findings.append(_mk(f"{m.group(1)} {m.group(2)}", m.group(3), "info"))
+        elif re.match(r"^[A-Za-z0-9._-]+\.[A-Za-z]{2,}$", clean):
+            findings.append(_mk(clean, "resolved", "info"))
+    return findings or [_mk("Записей нет", "", "info")]
+
+
+def parse_dnsrecon(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        m = re.search(r"\[\*\]\s+(\w+)\s+(.+)", clean)
+        if m and m.group(1) in ("A", "AAAA", "MX", "NS", "TXT", "SOA", "SRV", "PTR", "CNAME"):
+            findings.append(_mk(m.group(1), m.group(2), "info"))
+        elif "Zone Transfer" in clean and "successful" in clean.lower():
+            findings.append(_mk("AXFR разрешён", clean, "high"))
+    return findings or [_mk("Записей нет", "", "info")]
+
+
+def parse_feroxbuster(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        m = re.match(r"^(\d{3})\s+\w+\s+.*?(https?://\S+)", clean)
+        if m:
+            code = m.group(1)
+            sev = "low" if code.startswith("2") else "info"
+            findings.append(_mk(m.group(2), f"HTTP {code}", sev))
+    return findings or [_mk("Путей не найдено", "", "info")]
+
+
+def parse_dalfox(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        if "[POC]" in clean or "[VULN]" in clean:
+            findings.append(_mk("XSS PoC", clean, "high"))
+        elif "[G]" in clean or "[GREP]" in clean:
+            findings.append(_mk("XSS grep-совпадение", clean, "medium"))
+    return findings or [_mk("XSS не подтверждён", "", "info")]
+
+
+def parse_wpscan(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        if clean.startswith("[!]"):
+            sev = "high" if re.search(r"vulnerab|CVE|exploit", clean, re.I) else "medium"
+            findings.append(_mk("WPScan", clean[3:].strip(), sev))
+        elif clean.startswith("[+]") and re.search(r"version|identified|user|plugin|theme", clean, re.I):
+            findings.append(_mk("WPScan", clean[3:].strip(), "info"))
+    return findings or [_mk("Существенных находок нет", "", "info")]
+
+
+def parse_tlsx(out: str, err: str) -> List[Finding]:
+    findings: List[Finding] = []
+    for clean in _lines(out):
+        if not clean:
+            continue
+        weak = re.search(r"(SSLv2|SSLv3|TLSv1\.0|TLSv1\.1|RC4|3DES|NULL|EXPORT)", clean)
+        sev = "medium" if weak else "info"
+        findings.append(_mk(clean.split()[0], clean.partition(" ")[2] or clean, sev))
+    return findings or [_mk("Данных TLS нет", "", "info")]
+
+
 # ── Реестр инструментов ──────────────────────────────────────────────────────
 class Tool:
     def __init__(
@@ -292,6 +389,8 @@ CATEGORIES = {
     "dirs": "Директории и файлы",
     "web_vuln": "Уязвимости веб",
     "tls": "TLS / SSL",
+    "osint": "OSINT / поддомены",
+    "network": "Сеть и сервисы",
 }
 
 
@@ -379,6 +478,89 @@ _reg(Tool(
     target_kind="host", timeout=900, install_hint="apt install testssl.sh",
     build_args=lambda t, o: ["testssl", "--color", "0", "--quiet", f"{t}:{int(o.get('port', 443) or 443)}"],
     parse=parse_testssl,
+))
+_reg(Tool(
+    id="tlsx", name="tlsx", category="tls", binary="tlsx",
+    description="Быстрый сбор данных TLS: версии, шифры, SAN сертификата.",
+    target_kind="host", timeout=120, install_hint="go install github.com/projectdiscovery/tlsx/...",
+    build_args=lambda t, o: ["tlsx", "-u", f"{t}:{int(o.get('port', 443) or 443)}", "-silent", "-tls-version", "-cipher", "-san"],
+    parse=parse_tlsx,
+))
+
+_reg(Tool(
+    id="subfinder", name="subfinder", category="osint", binary="subfinder",
+    description="Пассивный сбор поддоменов из открытых источников.",
+    target_kind="host", timeout=300, install_hint="go install github.com/projectdiscovery/subfinder/...",
+    build_args=lambda t, o: ["subfinder", "-d", host_of(t), "-silent"] + (["-all"] if o.get("all") else []),
+    parse=parse_hostlist,
+))
+_reg(Tool(
+    id="assetfinder", name="assetfinder", category="osint", binary="assetfinder",
+    description="Быстрый поиск связанных доменов и поддоменов.",
+    target_kind="host", timeout=180, install_hint="go install github.com/tomnomnom/assetfinder@latest",
+    build_args=lambda t, o: ["assetfinder", "--subs-only", host_of(t)],
+    parse=parse_hostlist,
+))
+_reg(Tool(
+    id="theharvester", name="theHarvester", category="osint", binary="theHarvester",
+    description="Сбор поддоменов, хостов и e-mail из открытых источников.",
+    target_kind="host", timeout=300, install_hint="pipx install theHarvester",
+    build_args=lambda t, o: ["theHarvester", "-d", host_of(t), "-b", o.get("sources") or "crtsh,bing,duckduckgo", "-l", str(int(o.get("limit", 300) or 300))],
+    parse=parse_hostlist,
+))
+_reg(Tool(
+    id="dnsx", name="dnsx", category="osint", binary="dnsx",
+    description="Массовый DNS-резолвер: A/AAAA/CNAME/MX/NS/TXT.",
+    target_kind="host", timeout=180, install_hint="go install github.com/projectdiscovery/dnsx/...",
+    build_args=lambda t, o: ["dnsx", "-d", host_of(t), "-a", "-aaaa", "-cname", "-mx", "-ns", "-txt", "-resp", "-silent"],
+    parse=parse_dnsx,
+))
+_reg(Tool(
+    id="dnsrecon", name="dnsrecon", category="recon", binary="dnsrecon",
+    description="DNS-разведка: стандартные записи и попытка трансфера зоны (AXFR).",
+    target_kind="host", timeout=240, install_hint="apt install dnsrecon",
+    build_args=lambda t, o: ["dnsrecon", "-d", host_of(t), "-t", o.get("types") or "std,axfr"],
+    parse=parse_dnsrecon,
+))
+
+_reg(Tool(
+    id="httpx", name="httpx", category="recon", binary="httpx",
+    description="HTTP-пробинг: живой ли хост, код, заголовок, технологии.",
+    target_kind="url", timeout=120, install_hint="go install github.com/projectdiscovery/httpx/...",
+    build_args=lambda t, o: ["httpx", "-u", t, "-sc", "-title", "-tech-detect", "-web-server", "-silent", "-nc"],
+    parse=parse_httpx,
+))
+_reg(Tool(
+    id="feroxbuster", name="feroxbuster", category="dirs", binary="feroxbuster",
+    description="Рекурсивный перебор путей с авто-углублением.",
+    target_kind="url", timeout=900, install_hint="apt install feroxbuster",
+    build_args=lambda t, o: [
+        "feroxbuster", "-u", t, "--silent", "-k",
+        "-w", o.get("wordlist") or default_wordlist(),
+        "-t", str(int(o.get("threads", 40) or 40)),
+        "-d", str(int(o.get("depth", 2) or 2)),
+    ],
+    parse=parse_feroxbuster,
+))
+
+_reg(Tool(
+    id="dalfox", name="Dalfox (XSS)", category="web_vuln", binary="dalfox",
+    description="Сканер XSS: параметры, DOM, обход фильтров, PoC.",
+    target_kind="url", timeout=600, install_hint="go install github.com/hahwul/dalfox/v2@latest",
+    build_args=lambda t, o: ["dalfox", "url", t, "--silence", "--no-color", "--skip-bav"]
+    + (["-b", o["blind"]] if o.get("blind") else []),
+    parse=parse_dalfox,
+))
+_reg(Tool(
+    id="wpscan", name="WPScan", category="web_vuln", binary="wpscan",
+    description="Сканер WordPress: ядро, уязвимые плагины/темы, пользователи.",
+    target_kind="url", timeout=900, install_hint="apt install wpscan / gem install wpscan",
+    build_args=lambda t, o: [
+        "wpscan", "--url", t, "--no-banner", "--random-user-agent",
+        "--enumerate", o.get("enumerate") or "vp,vt,u",
+        "--format", "cli-no-color", "--disable-tls-checks",
+    ] + (["--api-token", o["api_token"]] if o.get("api_token") and re.match(r"^[A-Za-z0-9]+$", o["api_token"]) else []),
+    parse=parse_wpscan,
 ))
 
 

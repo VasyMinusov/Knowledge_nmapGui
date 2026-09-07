@@ -1,0 +1,119 @@
+/* src/components/Terminal/Terminal.module.css */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.stats {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+.stats b {
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 8px var(--color-accent-glow);
+}
+
+/* ── Переключатель режимов ── */
+.toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 3px solid var(--color-border-default);
+  background: var(--color-bg-tertiary);
+  position: relative;
+}
+
+.toggleBtn {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px 22px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-muted);
+  transition: color 0.2s;
+}
+
+.toggleBtn:hover {
+  color: var(--color-text-secondary);
+}
+
+.toggleActive {
+  color: var(--color-bg-primary);
+}
+
+.pill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent-neon);
+  box-shadow: 0 0 18px var(--color-accent-glow), inset 0 0 8px rgba(0, 0, 0, 0.3);
+  z-index: 0;
+}
+
+.toggleLabel {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+/* ── Быстрый старт ── */
+.quickRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.quickLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.quickChip {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border-default);
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.quickChip:hover:not(:disabled) {
+  background: var(--color-accent-dim);
+  box-shadow: 0 0 12px var(--color-accent-dim);
+  transform: translateY(-1px);
+}
+
+.quickChip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.builderPane {
+  margin-top: 18px;
+}

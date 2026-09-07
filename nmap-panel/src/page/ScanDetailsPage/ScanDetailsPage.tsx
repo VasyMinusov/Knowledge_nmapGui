@@ -6,6 +6,7 @@ import { HostGrid } from '@/components/HostGrid/HostGrid';
 import { HostDetailsModal } from '@/components/HostDetailsModal/HostDetailsModal';
 import { VulnerabilitiesList } from '@/components/VulnerabilitiesList/VulnerabilitiesList';
 import { AuditToolkit } from '@/components/AuditToolkit/AuditToolkit';
+import { Terminal } from '@/components/Terminal/Terminal';
 import { nmapApi, type ScanHistoryItem, type HostInfo } from '@/api/nmapApi';
 import styles from './ScanDetailsPage.module.css';
 
@@ -14,7 +15,7 @@ interface ScanDetailsPageProps {
   onClose: () => void;
 }
 
-type TabId = 'summary' | 'hosts' | 'topology' | 'vulnerabilities' | 'audit';
+type TabId = 'summary' | 'hosts' | 'topology' | 'vulnerabilities' | 'audit' | 'terminal';
 
 export const ScanDetailsPage: React.FC<ScanDetailsPageProps> = ({ scanId, onClose }) => {
   const [scan, setScan] = useState<ScanHistoryItem | null>(null);
@@ -54,6 +55,7 @@ export const ScanDetailsPage: React.FC<ScanDetailsPageProps> = ({ scanId, onClos
     { id: 'topology', label: 'Топология' },
     { id: 'vulnerabilities', label: 'Уязвимости' },
     { id: 'audit', label: '⚙ Аудит' },
+    { id: 'terminal', label: '⌘ Терминал' },
   ];
 
   if (loading) {
@@ -124,6 +126,10 @@ export const ScanDetailsPage: React.FC<ScanDetailsPageProps> = ({ scanId, onClos
 
         {activeTab === 'audit' && (
           <AuditToolkit scanId={scan.scan_id} hosts={hosts} targets={scan.targets} />
+        )}
+
+        {activeTab === 'terminal' && (
+          <Terminal initialTarget={scan.targets} title={`ТЕРМИНАЛ · ${scan.scan_id.slice(0, 8)}`} />
         )}
       </div>
 

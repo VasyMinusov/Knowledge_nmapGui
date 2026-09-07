@@ -28,6 +28,7 @@ import { ScanCompare } from './components/ScanCompare/ScanCompare';
 import { CommandExplainer } from './components/CommandExplainer/CommandExplainer';
 import { VulnerabilitiesList } from './components/VulnerabilitiesList/VulnerabilitiesList';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard/AnalyticsDashboard';
+import { Terminal } from './components/Terminal/Terminal';
 import { ScanDetailsPage } from './page/ScanDetailsPage/ScanDetailsPage';
 import { useScan } from './hooks/useScan';
 import { nmapApi, type ScanHistoryItem, type Preset, type ScanRequest, type Schedule } from './api/nmapApi';
@@ -43,7 +44,8 @@ type Screen =
   | 'compare'
   | 'explainer'
   | 'vulns'
-  | 'analytics';
+  | 'analytics'
+  | 'terminal';
 
 const App: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -389,6 +391,8 @@ const App: React.FC = () => {
         return <VulnerabilitiesList />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'terminal':
+        return <Terminal />;
       default:
         return null;
     }
@@ -424,7 +428,7 @@ const App: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 24, marginTop: 12, flexWrap: 'wrap' }}>
-          {['scan','history','presets','schedules','knowledge','portcheck','compare','explainer','vulns','analytics'].map((s) => (
+          {['scan','history','presets','schedules','knowledge','portcheck','compare','explainer','vulns','analytics','terminal'].map((s) => (
             <div key={s} style={screen === s ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
               <NeonButton variant="primary" onClick={() => setScreen(s as Screen)}>
                 {s === 'scan' && 'Сканирование'}
@@ -437,6 +441,7 @@ const App: React.FC = () => {
                 {s === 'explainer' && 'Объяснитель'}
                 {s === 'vulns' && 'Уязвимости'}
                 {s === 'analytics' && 'Аналитика'}
+                {s === 'terminal' && '⌘ Терминал'}
               </NeonButton>
             </div>
           ))}

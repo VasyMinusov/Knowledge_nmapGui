@@ -61,6 +61,7 @@ to_text.sh
 create_files.sh
 **/scans/
 **/audit_runs/
+**/terminal_runs/
 all_files_content.txt
 *.spec
 

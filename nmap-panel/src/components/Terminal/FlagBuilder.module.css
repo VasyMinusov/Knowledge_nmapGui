@@ -1,0 +1,242 @@
+/* src/components/Terminal/FlagBuilder.module.css */
+.state {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: 20px 4px;
+}
+.stateError {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger-base);
+  padding: 20px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* ── Выбор инструмента ── */
+.pickerHint {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.toolCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  padding: 14px;
+  cursor: pointer;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border-default);
+  color: inherit;
+  font: inherit;
+}
+
+.toolCard.dim {
+  opacity: 0.6;
+  border-color: var(--color-text-muted);
+}
+
+.toolIcon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 6px var(--color-accent-glow));
+}
+
+.toolName {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  text-shadow: 0 0 8px rgba(102, 255, 51, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.toolDesc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  min-height: 2.6em;
+}
+
+.toolFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.toolFoot code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* ── Конфигуратор ── */
+.builder {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.builderHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.builderTitle {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-accent-neon);
+  text-shadow: 0 0 12px var(--color-accent-glow);
+  letter-spacing: 1px;
+}
+
+.targetRow {
+  max-width: 520px;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.group {
+  border: 2px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+}
+
+.groupName {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-bg-primary);
+  background: var(--color-accent-neon);
+  padding: 5px 10px;
+  box-shadow: 0 0 12px var(--color-accent-dim);
+}
+
+.groupBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.flag {
+  padding: 10px;
+  border-bottom: 1px solid var(--color-border-default);
+  transition: background 0.15s;
+}
+.flag:last-child { border-bottom: none; }
+
+.flagOn {
+  background: var(--color-accent-dim);
+  box-shadow: inset 3px 0 0 var(--color-accent-neon);
+}
+
+.flagTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.flagCode {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-default);
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.flagDesc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.flagInput {
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+/* ── Превью команды ── */
+.previewWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  background: var(--color-bg-primary);
+  padding-top: 8px;
+}
+
+.previewLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-secondary);
+}
+
+.preview {
+  border: 2px solid var(--color-accent-neon);
+  background: var(--color-bg-primary);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+
+.preview code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-shadow: 0 0 8px rgba(102, 255, 51, 0.55);
+  white-space: pre;
+}
+
+.previewActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.example {
+  background: transparent;
+  border: 1px dashed var(--color-border-default);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 10px;
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.example:hover:not(:disabled) {
+  color: var(--color-text-secondary);
+  border-color: var(--color-accent-neon);
+}
+.example code { color: inherit; }
+
+@media (max-width: 768px) {
+  .groups { grid-template-columns: 1fr; }
+}
