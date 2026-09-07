@@ -36,3 +36,30 @@ class ScanStatus(BaseModel):
     stage: Optional[str] = None    # новый: 'ping', 'port_scan', 'service_detection', 'script_scan'
     hosts: List[HostInfo] = []
     summary: Optional[str] = None
+
+
+# ── Инструментарий дальнейшего аудита ────────────────────────────────────────
+
+class AuditRunRequest(BaseModel):
+    tool_id: str
+    target: str
+    scan_id: Optional[str] = None
+    options: Optional[Dict[str, Any]] = None
+
+
+class AuditFinding(BaseModel):
+    title: str
+    detail: str = ""
+    severity: str = "info"  # info | low | medium | high | critical
+
+
+class AuditTaskStatus(BaseModel):
+    task_id: str
+    tool_id: str
+    target: str
+    scan_id: Optional[str] = None
+    status: str  # 'running', 'done', 'error', 'cancelled'
+    command: str = ""
+    output: str = ""
+    findings: List[AuditFinding] = []
+    summary: Optional[str] = None

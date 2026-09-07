@@ -7,6 +7,7 @@ const KNOWLEDGE_BASE = 'http://localhost:5000/api/knowledge';
 const PORT_CHECK_BASE = 'http://localhost:5000/api/port-check';
 const VULN_BASE = 'http://localhost:5000/api/vulnerabilities';
 const ANALYTICS_BASE = 'http://localhost:5000/api/analytics';
+const AUDIT_BASE = 'http://localhost:5000/api/audit';
 
 // --- Типы для сканирования ---
 export interface ScanOptions {
@@ -116,6 +117,87 @@ export interface PortCheckResponse {
     error: number;
   };
 }
+
+// --- Типы для инструментария дальнейшего аудита ---
+export type AuditSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
+export type AuditTaskState = 'running' | 'done' | 'error' | 'cancelled';
+
+export interface AuditTool {
+  id: string;
+  name: string;
+  category: string;         // 'recon' | 'dirs' | 'web_vuln' | 'tls'
+  category_label: string;
+  description: string;
+  binary: string;
+  target_kind: 'url' | 'host';
+  available: boolean;
+  install_hint: string;
+  timeout: number;
+}
+
+export interface AuditCategory {
+  id: string;
+  label: string;
+}
+
+export interface AuditFinding {
+  title: string;
+  detail: string;
+  severity: AuditSeverity;
+}
+
+export interface AuditRunRequest {
+  tool_id: string;
+  target: string;
+  scan_id?: string | null;
+  options?: Record<string, any>;
+}
+
+export interface AuditTaskStatus {
+  task_id: string;
+  tool_id: string;
+  target: string;
+  scan_id?: string | null;
+  status: AuditTaskState;
+  command: string;
+  output: string;
+  findings: AuditFinding[];
+  summary?: string;
+}
+
+export interface AuditTaskSummary {
+  task_id: string;
+  scan_id?: string | null;
+  tool_id: string;
+  target: string;
+  options?: string;
+  status: AuditTaskState;
+  start_time: string;
+  end_time?: string;
+  command?: string;
+  summary?: string;
+}
+
+export const auditApi = {
+  getTools: () =>
+    axios.get<{ categories: AuditCategory[]; tools: AuditTool[] }>(`${AUDIT_BASE}/tools`),
+  run: (data: AuditRunRequest) =>
+    axios.post<{ task_id: string }>(`${AUDIT_BASE}/run`, data),
+  getStatus: (taskId: string) =>
+    axios.get<AuditTaskStatus>(`${AUDIT_BASE}/${taskId}/status`),
+  cancel: (taskId: string) =>
+    axios.post(`${AUDIT_BASE}/${taskId}/cancel`),
+  getHistory: (scanId?: string) =>
+    axios.get<{ tasks: AuditTaskSummary[] }>(
+      `${AUDIT_BASE}/history${scanId ? `?scan_id=${encodeURIComponent(scanId)}` : ''}`,
+    ),
+  getTask: (taskId: string) =>
+    axios.get<AuditTaskStatus & { options: Record<string, any>; start_time: string; end_time?: string }>(
+      `${AUDIT_BASE}/task/${taskId}`,
+    ),
+  deleteTask: (taskId: string) =>
+    axios.delete(`${AUDIT_BASE}/task/${taskId}`),
+};
 
 // --- API вызовы ---
 export const nmapApi = {

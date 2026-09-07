@@ -5,6 +5,7 @@ import { TopologyGraph } from '@/components/TopologyGraph/TopologyGraph';
 import { HostGrid } from '@/components/HostGrid/HostGrid';
 import { HostDetailsModal } from '@/components/HostDetailsModal/HostDetailsModal';
 import { VulnerabilitiesList } from '@/components/VulnerabilitiesList/VulnerabilitiesList';
+import { AuditToolkit } from '@/components/AuditToolkit/AuditToolkit';
 import { nmapApi, type ScanHistoryItem, type HostInfo } from '@/api/nmapApi';
 import styles from './ScanDetailsPage.module.css';
 
@@ -13,7 +14,7 @@ interface ScanDetailsPageProps {
   onClose: () => void;
 }
 
-type TabId = 'summary' | 'hosts' | 'topology' | 'vulnerabilities';
+type TabId = 'summary' | 'hosts' | 'topology' | 'vulnerabilities' | 'audit';
 
 export const ScanDetailsPage: React.FC<ScanDetailsPageProps> = ({ scanId, onClose }) => {
   const [scan, setScan] = useState<ScanHistoryItem | null>(null);
@@ -52,6 +53,7 @@ export const ScanDetailsPage: React.FC<ScanDetailsPageProps> = ({ scanId, onClos
     { id: 'hosts', label: `Хосты (${hosts.length})` },
     { id: 'topology', label: 'Топология' },
     { id: 'vulnerabilities', label: 'Уязвимости' },
+    { id: 'audit', label: '⚙ Аудит' },
   ];
 
   if (loading) {
@@ -118,6 +120,10 @@ export const ScanDetailsPage: React.FC<ScanDetailsPageProps> = ({ scanId, onClos
 
         {activeTab === 'vulnerabilities' && (
           <VulnerabilitiesList scanId={scan.scan_id} />
+        )}
+
+        {activeTab === 'audit' && (
+          <AuditToolkit scanId={scan.scan_id} hosts={hosts} targets={scan.targets} />
         )}
       </div>
 

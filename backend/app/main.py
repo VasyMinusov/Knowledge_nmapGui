@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from app.routes import scan, schedule, port_check, compare, topology, vulnerabilities, analytics
+from app.routes import scan, schedule, port_check, compare, topology, vulnerabilities, analytics, audit
 from app.knowledge_base import router as knowledge_router
 
 app = FastAPI(title="Nmap Panel API")
@@ -27,6 +27,7 @@ app.include_router(compare.router)
 app.include_router(topology.router)
 app.include_router(vulnerabilities.router)
 app.include_router(analytics.router)
+app.include_router(audit.router)
 
 # ---------- Раздача статики ----------
 def get_static_dir():

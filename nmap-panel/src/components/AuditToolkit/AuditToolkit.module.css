@@ -1,0 +1,69 @@
+/* src/components/AuditToolkit/AuditToolkit.module.css */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.targetRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.targetSelect {
+  flex: 1;
+  min-width: 220px;
+}
+
+.targetInput {
+  flex: 2;
+  min-width: 260px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.state {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: 16px 4px;
+}
+
+.stateError {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger-base);
+  padding: 16px 4px;
+}
+
+.tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .targetRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

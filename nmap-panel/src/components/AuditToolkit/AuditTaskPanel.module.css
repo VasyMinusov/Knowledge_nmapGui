@@ -1,0 +1,142 @@
+/* src/components/AuditToolkit/AuditTaskPanel.module.css */
+.panel {
+  border: 2px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tool {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
+}
+
+.target {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  word-break: break-all;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.findings {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 2px solid var(--color-border-default);
+}
+
+.findings table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.findings th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border-default);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.findings td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+  vertical-align: top;
+}
+
+.findings tbody tr:hover {
+  background: var(--color-accent-dim);
+}
+
+.fTitle {
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.fDetail {
+  color: var(--color-text-muted);
+  word-break: break-word;
+}
+
+.command {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  padding: 6px 10px;
+  overflow-x: auto;
+}
+
+.command code {
+  white-space: pre;
+}
+
+.outputBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outputToggle {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+
+.outputToggle:hover {
+  color: var(--color-accent-neon);
+}
+
+.output {
+  margin: 0;
+  max-height: 340px;
+  overflow: auto;
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-border-default);
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

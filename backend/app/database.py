@@ -103,6 +103,26 @@ def init_db():
         )
     ''')
 
+    # Таблица задач дальнейшего аудита (внешние инструменты пентеста)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS audit_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id TEXT UNIQUE NOT NULL,
+            scan_id TEXT,
+            tool_id TEXT NOT NULL,
+            target TEXT NOT NULL,
+            options TEXT,
+            status TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            command TEXT,
+            output TEXT,
+            findings TEXT,
+            summary TEXT,
+            FOREIGN KEY (scan_id) REFERENCES scans(scan_id) ON DELETE CASCADE
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -387,3 +407,76 @@ def get_vulnerability_stats() -> Dict:
     stats['low'] = cursor.fetchone()[0]
     conn.close()
     return stats
+
+
+# --- Функции для задач дальнейшего аудита ---
+
+def save_audit_task(task_id: str, scan_id: Optional[str], tool_id: str, target: str,
+                    options: Optional[Dict], status: str, start_time: str, command: str):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """INSERT OR REPLACE INTO audit_tasks
+           (task_id, scan_id, tool_id, target, options, status, start_time, command)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (task_id, scan_id, tool_id, target,
+         json.dumps(options) if options else None, status, start_time, command)
+    )
+    conn.commit()
+    conn.close()
+
+
+def update_audit_task(task_id: str, status: str, end_time: str,
+                      output: Optional[str], findings: Optional[str], summary: Optional[str]):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """UPDATE audit_tasks
+           SET status = ?, end_time = ?, output = ?, findings = ?, summary = ?
+           WHERE task_id = ?""",
+        (status, end_time, output, findings, summary, task_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_audit_tasks(scan_id: Optional[str] = None, limit: int = 100, offset: int = 0) -> List[Dict]:
+    conn = get_db()
+    cursor = conn.cursor()
+    if scan_id:
+        cursor.execute(
+            """SELECT task_id, scan_id, tool_id, target, options, status, start_time,
+                      end_time, command, summary
+               FROM audit_tasks WHERE scan_id = ?
+               ORDER BY start_time DESC LIMIT ? OFFSET ?""",
+            (scan_id, limit, offset)
+        )
+    else:
+        cursor.execute(
+            """SELECT task_id, scan_id, tool_id, target, options, status, start_time,
+                      end_time, command, summary
+               FROM audit_tasks ORDER BY start_time DESC LIMIT ? OFFSET ?""",
+            (limit, offset)
+        )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_audit_task(task_id: str) -> Optional[Dict]:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM audit_tasks WHERE task_id = ?", (task_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def delete_audit_task(task_id: str) -> bool:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM audit_tasks WHERE task_id = ?", (task_id,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted

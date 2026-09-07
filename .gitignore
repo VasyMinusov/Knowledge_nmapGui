@@ -60,5 +60,9 @@ Thumbs.db
 to_text.sh
 create_files.sh
 **/scans/
+**/audit_runs/
 all_files_content.txt
 *.spec
+
+# Артефакты graphify (генерируются локально)
+graphify-out/
