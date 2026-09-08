@@ -45,7 +45,7 @@ export const Terminal: React.FC<TerminalProps> = ({ initialTarget, title = 'ВС
         const bins = Object.values(res.data.binaries);
         setStats({ have: bins.filter(Boolean).length, total: bins.length });
       })
-      .catch(() => setError('Не удалось получить каталог. Бэкенд запущен на :5000?'))
+      .catch(() => setError('Не удалось получить каталог. Бэкенд запущен и доступен по /api?'))
       .finally(() => setLoading(false));
   }, []);
 

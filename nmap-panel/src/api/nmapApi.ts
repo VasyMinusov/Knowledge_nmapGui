@@ -1,14 +1,20 @@
 // frontend/src/api/nmapApi.ts
 import axios from 'axios';
 
-const SCAN_BASE = 'http://localhost:5000/api/scan';
-const SCHEDULE_BASE = 'http://localhost:5000/api/schedule';
-const KNOWLEDGE_BASE = 'http://localhost:5000/api/knowledge';
-const PORT_CHECK_BASE = 'http://localhost:5000/api/port-check';
-const VULN_BASE = 'http://localhost:5000/api/vulnerabilities';
-const ANALYTICS_BASE = 'http://localhost:5000/api/analytics';
-const AUDIT_BASE = 'http://localhost:5000/api/audit';
-const TERMINAL_BASE = 'http://localhost:5000/api/terminal';
+// База API. По умолчанию — относительный путь `/api`: запросы идут на тот же
+// origin, что отдал страницу (nginx в Docker проксирует /api → backend:5000,
+// в dev-режиме проксирует vite, при запуске из uvicorn — тот же порт 5000).
+// Переопределяется на этапе сборки через VITE_API_BASE (напр. http://192.168.1.10:5000/api).
+const API_ROOT = (import.meta.env.VITE_API_BASE ?? '/api').replace(/\/+$/, '');
+
+const SCAN_BASE = `${API_ROOT}/scan`;
+const SCHEDULE_BASE = `${API_ROOT}/schedule`;
+const KNOWLEDGE_BASE = `${API_ROOT}/knowledge`;
+const PORT_CHECK_BASE = `${API_ROOT}/port-check`;
+const VULN_BASE = `${API_ROOT}/vulnerabilities`;
+const ANALYTICS_BASE = `${API_ROOT}/analytics`;
+const AUDIT_BASE = `${API_ROOT}/audit`;
+const TERMINAL_BASE = `${API_ROOT}/terminal`;
 
 // --- Типы для сканирования ---
 export interface ScanOptions {

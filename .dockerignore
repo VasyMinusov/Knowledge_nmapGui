@@ -7,3 +7,20 @@
 **/*.pyo
 **/*.pyd
 **/.DS_Store
+
+# venv и рабочие артефакты — не нужны в образах
+**/venv
+**/.venv
+backend/audit_runs
+backend/terminal_runs
+backend/scans
+scans
+audit_runs
+terminal_runs
+
+# крупные файлы репозитория, не нужные для сборки
+all_files_content.txt
+image*.png
+*.7z
+graphify-out
+nmap-panel/Frontend.7z
