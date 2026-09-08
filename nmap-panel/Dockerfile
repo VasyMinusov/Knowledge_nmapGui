@@ -1,5 +1,7 @@
-# Контекст сборки — КОРЕНЬ репозитория (см. docker-compose.yml: context: .)
-# Так один образ содержит и собранный фронт, и конфиг nginx — хост-монтирования не нужны.
+# Контекст сборки — КОРЕНЬ репозитория (см. docker-compose.build.yml).
+# Обычный запуск использует готовый dist из репозитория и стоковый nginx —
+# этот Dockerfile нужен только чтобы собрать фронт из исходников внутри Docker
+# (требуется доступ к npm-реестру во время сборки).
 
 # --- Сборка фронтенда ---
 FROM node:22-alpine AS build
@@ -10,7 +12,12 @@ WORKDIR /app
 ARG VITE_API_BASE=""
 ENV VITE_API_BASE=${VITE_API_BASE}
 
-RUN corepack enable
+# pnpm ставим напрямую через npm (без corepack — он капризен к сети).
+# Версия должна понимать lockfileVersion 9.0 из pnpm-lock.yaml.
+RUN npm install -g pnpm@9 --loglevel=error \
+    && npm config set fetch-retries 5 \
+    && npm config set fetch-retry-maxtimeout 120000
+
 COPY nmap-panel/package.json nmap-panel/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY nmap-panel/ ./

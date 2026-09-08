@@ -1,0 +1,15 @@
+# Оверрайд: собрать фронтенд внутри Docker (нужен доступ к npm-реестру при сборке).
+# Обычный путь — собранный dist из репозитория, см. docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+#
+services:
+  nginx:
+    image: !reset null
+    build:
+      context: .
+      dockerfile: nmap-panel/Dockerfile
+      args:
+        # пусто => фронт ходит на относительный /api (nginx проксирует на backend)
+        VITE_API_BASE: ${VITE_API_BASE:-}
+    volumes: !reset []

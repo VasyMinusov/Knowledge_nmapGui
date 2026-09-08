@@ -23,12 +23,13 @@
 ### Docker (рекомендуется)
 
 ```bash
-docker compose up --build        # первый запуск: соберёт образы (бэкенд + фронт) и подтянет инструменты
+docker compose up --build        # первый запуск: соберёт бэкенд и подтянет инструменты
 docker compose up                # последующие запуски
 ```
 
-Фронтенд собирается внутри образа nginx — ставить Node.js на хост и делать
-`pnpm build` вручную не нужно. Работает одинаково на Linux, macOS и Windows.
+Собранная панель (`nmap-panel/dist/`) лежит в репозитории, её отдаёт стоковый
+`nginx:alpine`. **Node.js на хосте не нужен**, при запуске нет обращений к npm —
+работает одинаково на Linux, macOS и Windows.
 
 - Интерфейс — **http://localhost** (порт меняется через `WEB_PORT`, напр. `WEB_PORT=8080 docker compose up`)
 - API и Swagger — **http://localhost/docs** (и напрямую **http://localhost:5000/docs**)
@@ -37,6 +38,14 @@ docker compose up                # последующие запуски
 и панель, — nginx проксирует его на бэкенд. Никакие хосты/порты в бандл не
 вшиваются, поэтому панель одинаково открывается по `localhost`, по IP машины
 или из другой ВМ.
+
+Изменили фронтенд? Пересоберите панель одним из способов:
+
+```bash
+cd nmap-panel && pnpm install && pnpm build          # нужен Node.js 18+ на хосте
+# или собрать внутри Docker (нужен доступ к npm при сборке):
+docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+```
 
 Профиль набора инструментов:
 
@@ -182,6 +191,7 @@ CORS настраивать не нужно. Бэкенд должен быть 
 | Расписания не срабатывают | Перезапустите бэкенд, проверьте системное время; APScheduler капризничает с `--reload`. |
 | Инструмент в терминале / аудите — «нет» | Его нет в образе. Пересоберите с `TOOLS_PROFILE=full` или доустановите вручную по подсказке на карточке. |
 | Панель открывается, но все запросы к API падают (`ERR_CONNECTION_REFUSED`, `Network Error`) | Старый бандл с вшитым `http://localhost:5000`. Пересоберите фронт (`pnpm build` или `docker compose up --build`) — теперь фронт ходит на относительный `/api`. |
-| На Windows через Docker панель пустая / нет данных | Пересоберите с `--build` (образ nginx сам собирает фронт). Проверьте, что порт 80 свободен, либо задайте `WEB_PORT`. |
+| На Windows через Docker панель пустая / нет данных | Проверьте, что папка `nmap-panel/dist/` есть в репозитории и порт 80 свободен (иначе `WEB_PORT=8080 docker compose up`). |
+| `pnpm install --frozen-lockfile ... did not complete` при `--build` | Сеть режет доступ к npm-реестру во время сборки. Используйте обычный `docker compose up` (готовый `dist` из репо) либо соберите панель на хосте: `cd nmap-panel && pnpm build`. |
 | `pnpm dev`: запросы к `/api` → 404 | Не запущен бэкенд на `:5000`, либо задайте `VITE_API_PROXY` на его адрес. |
 | Ошибки CORS | Не должно возникать: фронт и API на одном origin (nginx/vite проксируют `/api`). Если задан абсолютный `VITE_API_BASE` — пропишите этот origin в `allow_origins` в `backend/app/main.py`. |

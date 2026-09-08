@@ -33,6 +33,10 @@ ENV/
 **/dist/
 **/build/
 .next/
+# ...кроме собранной панели — она хранится в репозитории, чтобы Docker/деплой
+# работал без Node.js и доступа к npm (см. Readme, раздел «Быстрый старт»).
+!nmap-panel/dist/
+!nmap-panel/dist/**
 
 # Логи
 npm-debug.log*

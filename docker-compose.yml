@@ -24,19 +24,17 @@ services:
       - nmap-network
 
   nginx:
-    build:
-      # контекст — корень репо: образ сам собирает фронт и кладёт nginx.conf,
-      # монтирования собранного dist с хоста больше не нужно (Windows-friendly)
-      context: .
-      dockerfile: nmap-panel/Dockerfile
-      args:
-        # пусто => фронт ходит на относительный /api (nginx проксирует на backend).
-        # Переопределить только если фронт и бэк на разных origin.
-        VITE_API_BASE: ${VITE_API_BASE:-}
+    image: nginx:alpine
     container_name: nmap-nginx
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-80}:80"
+    volumes:
+      # собранная панель лежит в репозитории — Node на хосте не нужен.
+      # Пересобрать: cd nmap-panel && pnpm install && pnpm build
+      # Собрать внутри Docker: docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nmap-panel/dist:/usr/share/nginx/html:ro
     depends_on:
       - backend
     networks:
