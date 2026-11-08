@@ -34,10 +34,13 @@ apt_try() {
 apt_try \
   nmap masscan \
   whatweb sqlmap wafw00f dirb \
-  hydra medusa \
+  hydra medusa ncrack patator \
   sslscan \
-  dnsutils dnsrecon whois ldap-utils \
-  smbclient nbtscan onesixtyone snmp \
+  dnsutils dnsrecon dnsenum fierce whois ldap-utils \
+  smbclient smbmap nbtscan onesixtyone snmp \
+  nfs-common samba-common-bin \
+  john hashcat cewl crunch wfuzz \
+  exploitdb \
   netcat-openbsd curl wget \
   iputils-ping traceroute mtr-tiny \
   ca-certificates openssl git perl \
@@ -71,11 +74,74 @@ apt-get clean && rm -rf /var/lib/apt/lists/*
 # ── pipx: Python-инструменты ──────────────────────────────────────────────
 if pip install --no-cache-dir pipx; then
   export PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin
-  for p in sslyze theHarvester arjun dirsearch; do
+  for p in sslyze theHarvester arjun dirsearch fierce droopescan commix enum4linux-ng; do
     pipx install "$p" || note_skip "pipx:$p"
   done
 else
   note_skip "pipx"
+fi
+
+# ── Git-инструменты без пакетов (Perl/Python) ─────────────────────────────
+# XSStrike
+if ! command -v xsstrike >/dev/null 2>&1; then
+  if git clone --depth 1 https://github.com/s0md3v/XSStrike.git /opt/xsstrike; then
+    pip install --no-cache-dir -r /opt/xsstrike/requirements.txt || note_skip "pip:xsstrike-deps"
+    printf '#!/bin/sh\nexec python3 /opt/xsstrike/xsstrike.py "$@"\n' > /usr/local/bin/xsstrike
+    chmod +x /usr/local/bin/xsstrike
+    echo "ok: xsstrike (github)"
+  else
+    note_skip "xsstrike"
+  fi
+fi
+
+# CMSeeK
+if ! command -v cmseek >/dev/null 2>&1; then
+  if git clone --depth 1 https://github.com/Tuhinshubhra/CMSeeK.git /opt/cmseek; then
+    pip install --no-cache-dir -r /opt/cmseek/requirements.txt || note_skip "pip:cmseek-deps"
+    printf '#!/bin/sh\nexec python3 /opt/cmseek/cmseek.py "$@"\n' > /usr/local/bin/cmseek
+    chmod +x /usr/local/bin/cmseek
+    echo "ok: cmseek (github)"
+  else
+    note_skip "cmseek"
+  fi
+fi
+
+# JoomScan (Perl)
+if ! command -v joomscan >/dev/null 2>&1; then
+  if git clone --depth 1 https://github.com/OWASP/joomscan.git /opt/joomscan; then
+    printf '#!/bin/sh\ncd /opt/joomscan && exec perl joomscan.pl "$@"\n' > /usr/local/bin/joomscan
+    chmod +x /usr/local/bin/joomscan
+    echo "ok: joomscan (github)"
+  else
+    note_skip "joomscan"
+  fi
+fi
+
+# ── Бинарные релизы (amd64) ───────────────────────────────────────────────
+ARCH="$(dpkg --print-architecture 2>/dev/null || echo amd64)"
+if [ "$ARCH" = "amd64" ]; then
+  # findomain
+  if ! command -v findomain >/dev/null 2>&1; then
+    if curl -sSL -o /usr/local/bin/findomain \
+      "https://github.com/Findomain/Findomain/releases/latest/download/findomain-linux"; then
+      chmod +x /usr/local/bin/findomain && echo "ok: findomain (release)"
+    else
+      note_skip "findomain"
+    fi
+  fi
+  # rustscan (deb-пакет из релизов)
+  if ! command -v rustscan >/dev/null 2>&1; then
+    if curl -sSL -o /tmp/rustscan.deb \
+      "https://github.com/RustScan/RustScan/releases/latest/download/rustscan_amd64.deb" \
+      && dpkg -i /tmp/rustscan.deb; then
+      echo "ok: rustscan (release)"
+    else
+      note_skip "rustscan"
+    fi
+    rm -f /tmp/rustscan.deb
+  fi
+else
+  note_skip "findomain/rustscan (нет релизов под $ARCH)"
 fi
 
 # ── Go: ProjectDiscovery и утилиты OSINT ──────────────────────────────────
@@ -125,3 +191,4 @@ else
   echo "install-tools.sh (full): все инструменты установлены"
 fi
 exit 0
+

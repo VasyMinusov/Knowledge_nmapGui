@@ -129,14 +129,18 @@ export interface PortCheckResponse {
 export type AuditSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
 export type AuditTaskState = 'running' | 'done' | 'error' | 'cancelled';
 
+export type AuditPhase = 'recon' | 'scanning' | 'vuln' | 'exploit' | 'brute' | 'tls' | 'utils';
+
 export interface AuditTool {
   id: string;
   name: string;
-  category: string;         // 'recon' | 'dirs' | 'web_vuln' | 'tls'
+  category: AuditPhase;
   category_label: string;
+  category_order: number;   // порядок фазы PTES (1..7)
+  phase_hint: string;       // когда фазу запускать
   description: string;
   binary: string;
-  target_kind: 'url' | 'host';
+  target_kind: 'url' | 'host' | 'query' | 'none';
   available: boolean;
   install_hint: string;
   timeout: number;
@@ -145,12 +149,18 @@ export interface AuditTool {
 export interface AuditCategory {
   id: string;
   label: string;
+  order: number;
+  icon: string;
+  phase_hint: string;
 }
 
 export interface AuditFinding {
   title: string;
   detail: string;
   severity: AuditSeverity;
+  source: string;  // id инструмента-источника
+  host: string;
+  port: string;
 }
 
 export interface AuditRunRequest {

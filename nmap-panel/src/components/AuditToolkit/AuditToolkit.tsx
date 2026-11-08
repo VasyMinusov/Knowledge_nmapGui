@@ -115,7 +115,7 @@ export const AuditToolkit: React.FC<AuditToolkitProps> = ({ scanId, hosts, targe
               <AuditToolCard
                 key={tool.id}
                 tool={tool}
-                disabled={!target.trim()}
+                disabled={tool.target_kind !== 'none' && !target.trim()}
                 running={taskList.some((t) => t.tool_id === tool.id && t.status === 'running')}
                 onRun={handleRun}
               />
@@ -149,3 +149,4 @@ export const AuditToolkit: React.FC<AuditToolkitProps> = ({ scanId, hosts, targe
     </div>
   );
 };
+

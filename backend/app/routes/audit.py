@@ -6,6 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from app.audit_tools import (
     CATEGORIES,
+    TOOLS,
     cancel_audit_task,
     get_audit_status,
     list_tools,
@@ -19,9 +20,22 @@ router = APIRouter(prefix="/api/audit", tags=["audit"])
 
 @router.get("/tools")
 async def audit_tools():
-    """Список поддерживаемых инструментов аудита и их доступность в системе."""
+    """Список поддерживаемых инструментов аудита и их доступность в системе.
+
+    Категории — фазы пентеста (PTES), отсортированы по order; каждая несёт
+    phase_hint (когда фазу запускать) и icon для UI.
+    """
     return {
-        "categories": [{"id": k, "label": v} for k, v in CATEGORIES.items()],
+        "categories": [
+            {
+                "id": cat_id,
+                "label": meta["label"],
+                "order": meta["order"],
+                "icon": meta["icon"],
+                "phase_hint": meta["phase_hint"],
+            }
+            for cat_id, meta in sorted(CATEGORIES.items(), key=lambda kv: kv[1]["order"])
+        ],
         "tools": list_tools(),
     }
 
@@ -29,7 +43,11 @@ async def audit_tools():
 @router.post("/run")
 async def audit_run(request: AuditRunRequest, background_tasks: BackgroundTasks):
     """Запускает инструмент аудита в фоне. Возвращает task_id для опроса статуса."""
-    if not request.target or not request.target.strip():
+    tool = TOOLS.get(request.tool_id)
+    if tool is None:
+        raise HTTPException(status_code=404, detail=f"Неизвестный инструмент: {request.tool_id}")
+    # target_kind="none" (crunch и т.п.) — цель не требуется
+    if tool.target_kind != "none" and (not request.target or not request.target.strip()):
         raise HTTPException(status_code=400, detail="Не указана цель")
     task_id = str(uuid.uuid4())
     background_tasks.add_task(
@@ -90,3 +108,4 @@ async def audit_task_delete(task_id: str):
     if not delete_audit_task(task_id):
         raise HTTPException(status_code=404, detail="Задача не найдена")
     return {"message": "Удалено"}
+

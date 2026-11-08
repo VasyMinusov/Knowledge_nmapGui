@@ -51,6 +51,9 @@ class AuditFinding(BaseModel):
     title: str
     detail: str = ""
     severity: str = "info"  # info | low | medium | high | critical
+    source: str = ""  # id инструмента-источника (для сводной панели находок)
+    host: str = ""
+    port: str = ""
 
 
 class AuditTaskStatus(BaseModel):

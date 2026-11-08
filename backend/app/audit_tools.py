@@ -29,9 +29,12 @@ AUDIT_DIR = "audit_runs"
 os.makedirs(AUDIT_DIR, exist_ok=True)
 
 _BUNDLED_WORDLIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wordlists", "common.txt")
+# Первый найденный путь побеждает: SecLists (профили full/max) → системные → bundled.
 _SYSTEM_WORDLISTS = [
-    "/usr/share/wordlists/dirb/common.txt",
+    "/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt",
+    "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt",
     "/usr/share/seclists/Discovery/Web-Content/common.txt",
+    "/usr/share/wordlists/dirb/common.txt",
     "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt",
 ]
 
@@ -60,10 +63,27 @@ def default_wordlist() -> str:
 def normalize_target(raw: str, kind: str) -> str:
     """Приводит цель к каноничному виду и проверяет её. Бросает ValueError."""
     target = (raw or "").strip()
-    if not target:
-        raise ValueError("Пустая цель")
     if "\n" in target or "\r" in target:
         raise ValueError("Недопустимый символ в цели")
+
+    if kind == "none":
+        # Инструменту цель не нужна (crunch и т.п.)
+        return ""
+
+    if kind == "query":
+        # Свободный запрос: строка поиска (searchsploit), хэш (john/hashcat),
+        # JSON (jq). Запускается списком аргументов без shell, поэтому
+        # shell-метасимволы безопасны — режем только управляющие символы.
+        if not target:
+            raise ValueError("Пустой запрос")
+        if any(ord(ch) < 32 for ch in target):
+            raise ValueError("Управляющий символ в запросе")
+        if len(target) > 2000:
+            raise ValueError("Запрос слишком длинный")
+        return target
+
+    if not target:
+        raise ValueError("Пустая цель")
 
     if kind == "url":
         if not target.startswith(("http://", "https://")):
@@ -96,8 +116,18 @@ Finding = Dict[str, str]  # {title, detail, severity}
 _SEV_ORDER = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 
 
-def _mk(title: str, detail: str = "", severity: str = "info") -> Finding:
-    return {"title": title, "detail": detail[:500], "severity": severity}
+def _mk(title: str, detail: str = "", severity: str = "info",
+        source: str = "", host: str = "", port: str = "") -> Finding:
+    # source/host/port заполняются раннером (run_audit_task) для сводной
+    # панели находок (A6); парсеры могут переопределить port при необходимости.
+    return {
+        "title": title[:200],
+        "detail": detail[:500],
+        "severity": severity,
+        "source": source,
+        "host": host,
+        "port": str(port) if port else "",
+    }
 
 
 def parse_whatweb(out: str, err: str) -> List[Finding]:
@@ -353,6 +383,120 @@ def parse_tlsx(out: str, err: str) -> List[Finding]:
     return findings or [_mk("Данных TLS нет", "", "info")]
 
 
+# ── Универсальные парсеры (A2.3) ─────────────────────────────────────────────
+_RE_CRITICAL = re.compile(r"\b(critical|rce|remote code execution|command execution)\b", re.I)
+_RE_HIGH = re.compile(r"vulnerab|exploit|cve-\d{4}|backdoor|injection", re.I)
+_RE_MEDIUM = re.compile(r"accepted|weak|deprecated|misconfig|outdated|exposed", re.I)
+_RE_LOW = re.compile(r"\bfound\b|\bopen\b|\badmin\b|\blogin\b|\bidentified\b", re.I)
+
+
+def make_generic_parser(keep_re: Optional[re.Pattern] = None,
+                        empty_msg: str = "Ничего не найдено") -> Callable[[str, str], List[Finding]]:
+    """Универсальный парсер для инструментов без JSON-режима.
+
+    - строки с vulnerable|exploit|CVE-|accepted → medium/high/critical;
+    - строки с found|open|admin → low;
+    - прочее — info, но только если строка матчит tool-specific keep_re
+      (шум: прогресс-бары, баннеры, сепараторы — отбрасывается).
+    """
+    def parse(out: str, err: str) -> List[Finding]:
+        findings: List[Finding] = []
+        for clean in _lines(out):
+            if not clean or len(clean) < 3:
+                continue
+            if _RE_CRITICAL.search(clean):
+                findings.append(_mk("Критично", clean, "critical"))
+            elif _RE_HIGH.search(clean):
+                findings.append(_mk("Уязвимость", clean, "high"))
+            elif _RE_MEDIUM.search(clean):
+                findings.append(_mk("Проблема", clean, "medium"))
+            elif _RE_LOW.search(clean):
+                findings.append(_mk("Обнаружено", clean, "low"))
+            elif keep_re and keep_re.search(clean):
+                findings.append(_mk(clean[:120], "", "info"))
+        return findings or [_mk(empty_msg, "", "info")]
+    return parse
+
+
+_JSON_SEV_KEYS = ("severity", "info.severity")
+_JSON_TITLE_KEYS = (
+    "templateID", "template-id", "template", "name_value", "common_name",
+    "name", "host", "url", "input", "matched-at", "title",
+)
+
+
+def _finding_from_json_obj(obj: dict) -> Optional[Finding]:
+    sev = ""
+    info = obj.get("info") if isinstance(obj.get("info"), dict) else {}
+    for key in _JSON_SEV_KEYS:
+        val = obj.get(key) or info.get(key.split(".")[-1])
+        if isinstance(val, str) and val.lower() in _SEV_ORDER:
+            sev = val.lower()
+            break
+    title = ""
+    for key in _JSON_TITLE_KEYS:
+        val = obj.get(key) or (info.get(key) if isinstance(info, dict) else None)
+        if isinstance(val, str) and val.strip():
+            title = val.strip()
+            break
+        if isinstance(val, list):  # crt.sh выдаёт name_value списком через \n
+            title = ", ".join(str(v) for v in val[:5])
+            break
+    if not title:
+        return None
+    port = obj.get("port") or obj.get("matched-port") or ""
+    host = obj.get("host") or obj.get("input") or ""
+    if not isinstance(host, str):
+        host = ""
+    detail_parts = []
+    for key in ("matched-at", "url", "issuer-name", "description", "type", "protocol"):
+        val = obj.get(key) or (info.get(key) if isinstance(info, dict) else None)
+        if isinstance(val, str) and val.strip() and val.strip() != title:
+            detail_parts.append(val.strip())
+    return _mk(title[:200], " · ".join(detail_parts), sev or "info",
+               host=host, port=str(port) if port else "")
+
+
+def parse_json_output(out: str, err: str) -> List[Finding]:
+    """Парсер JSON-нативных инструментов (nuclei -json, httpx -json, dnsx -json,
+    naabu -json, crt.sh через curl). Поддерживает JSON-lines и цельный JSON."""
+    import json as _json
+
+    findings: List[Finding] = []
+    seen = set()
+    text = (out or "").strip()
+
+    def _add(obj):
+        if not isinstance(obj, dict):
+            return
+        f = _finding_from_json_obj(obj)
+        if f and f["title"] not in seen:
+            seen.add(f["title"])
+            findings.append(f)
+
+    # Цельный JSON (массив/объект) — например, ответ crt.sh
+    if text.startswith(("[", "{")):
+        try:
+            data = _json.loads(text)
+            for obj in (data if isinstance(data, list) else [data]):
+                _add(obj)
+            if findings:
+                return findings[:500]
+        except ValueError:
+            pass
+
+    # JSON-lines
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            _add(_json.loads(line))
+        except ValueError:
+            continue
+    return findings[:500] or [_mk("Ничего не найдено", "", "info")]
+
+
 # ── Реестр инструментов ──────────────────────────────────────────────────────
 class Tool:
     def __init__(
@@ -384,14 +528,59 @@ class Tool:
         return shutil.which(self.binary) is not None
 
 
+# Категории = фазы пентеста (PTES). Порядок order задаёт последовательность
+# в UI; phase_hint подсказывает, когда фазу запускать (A2.1).
 CATEGORIES = {
-    "recon": "Веб-разведка",
-    "dirs": "Директории и файлы",
-    "web_vuln": "Уязвимости веб",
-    "tls": "TLS / SSL",
-    "osint": "OSINT / поддомены",
-    "network": "Сеть и сервисы",
+    "recon": {
+        "label": "Разведка (OSINT)",
+        "order": 1,
+        "icon": "○",
+        "phase_hint": "Первый шаг: пассивный сбор поддоменов, технологий и следов цели без шума в её логах.",
+    },
+    "scanning": {
+        "label": "Сканирование и enum",
+        "order": 2,
+        "icon": "○",
+        "phase_hint": "После разведки: порты, сервисы, перебор директорий и перечисление SMB/SNMP/LDAP.",
+    },
+    "vuln": {
+        "label": "Анализ уязвимостей",
+        "order": 3,
+        "icon": "○",
+        "phase_hint": "Когда сервисы и технологии известны: сканеры уязвимостей и проверки CMS.",
+    },
+    "exploit": {
+        "label": "Эксплуатация",
+        "order": 4,
+        "icon": "○",
+        "phase_hint": "После подтверждения уязвимостей: модули Metasploit (профиль сборки max).",
+    },
+    "brute": {
+        "label": "Брутфорс / пароли",
+        "order": 5,
+        "icon": "○",
+        "phase_hint": "На найденные сервисы аутентификации (SSH/FTP/SMB) — в последнюю очередь, шумно.",
+    },
+    "tls": {
+        "label": "TLS / SSL",
+        "order": 6,
+        "icon": "○",
+        "phase_hint": "Для HTTPS-сервисов: протоколы, шифры, сертификаты, известные уязвимости TLS.",
+    },
+    "utils": {
+        "label": "Утилиты",
+        "order": 7,
+        "icon": "○",
+        "phase_hint": "Вспомогательные утилиты на любом этапе: DNS, сертификаты, JSON.",
+    },
 }
+
+# Порядок категории по умолчанию для неизвестных/будущих id.
+_CATEGORY_FALLBACK = {"label": "Прочее", "order": 99, "icon": "○", "phase_hint": ""}
+
+
+def _category_meta(category: str) -> dict:
+    return CATEGORIES.get(category, _CATEGORY_FALLBACK)
 
 
 TOOLS: Dict[str, Tool] = {}
@@ -424,7 +613,7 @@ _reg(Tool(
 ))
 
 _reg(Tool(
-    id="gobuster", name="Gobuster (dir)", category="dirs", binary="gobuster",
+    id="gobuster", name="Gobuster (dir)", category="scanning", binary="gobuster",
     description="Брутфорс путей и файлов по словарю (режим dir).",
     target_kind="url", timeout=600, install_hint="apt install gobuster",
     build_args=lambda t, o: [
@@ -435,7 +624,7 @@ _reg(Tool(
     parse=parse_gobuster,
 ))
 _reg(Tool(
-    id="ffuf", name="ffuf", category="dirs", binary="ffuf",
+    id="ffuf", name="ffuf", category="scanning", binary="ffuf",
     description="Быстрый веб-фаззер путей (FUZZ в конце URL).",
     target_kind="url", timeout=600, install_hint="apt install ffuf",
     build_args=lambda t, o: [
@@ -448,14 +637,14 @@ _reg(Tool(
 ))
 
 _reg(Tool(
-    id="nikto", name="Nikto", category="web_vuln", binary="nikto",
+    id="nikto", name="Nikto", category="vuln", binary="nikto",
     description="Сканер веб-сервера: опасные файлы, устаревшее ПО, ошибки конфигурации.",
     target_kind="url", timeout=900, install_hint="apt install nikto",
     build_args=lambda t, o: ["nikto", "-h", t, "-nointeractive", "-ask", "no", "-maxtime", str(int(o.get("maxtime", 600) or 600))],
     parse=parse_nikto,
 ))
 _reg(Tool(
-    id="nuclei", name="Nuclei", category="web_vuln", binary="nuclei",
+    id="nuclei", name="Nuclei", category="vuln", binary="nuclei",
     description="Шаблонный сканер уязвимостей и типовых мисконфигураций.",
     target_kind="url", timeout=900, install_hint="go install .../nuclei@latest",
     build_args=lambda t, o: [
@@ -488,28 +677,28 @@ _reg(Tool(
 ))
 
 _reg(Tool(
-    id="subfinder", name="subfinder", category="osint", binary="subfinder",
+    id="subfinder", name="subfinder", category="recon", binary="subfinder",
     description="Пассивный сбор поддоменов из открытых источников.",
     target_kind="host", timeout=300, install_hint="go install github.com/projectdiscovery/subfinder/...",
     build_args=lambda t, o: ["subfinder", "-d", host_of(t), "-silent"] + (["-all"] if o.get("all") else []),
     parse=parse_hostlist,
 ))
 _reg(Tool(
-    id="assetfinder", name="assetfinder", category="osint", binary="assetfinder",
+    id="assetfinder", name="assetfinder", category="recon", binary="assetfinder",
     description="Быстрый поиск связанных доменов и поддоменов.",
     target_kind="host", timeout=180, install_hint="go install github.com/tomnomnom/assetfinder@latest",
     build_args=lambda t, o: ["assetfinder", "--subs-only", host_of(t)],
     parse=parse_hostlist,
 ))
 _reg(Tool(
-    id="theharvester", name="theHarvester", category="osint", binary="theHarvester",
+    id="theharvester", name="theHarvester", category="recon", binary="theHarvester",
     description="Сбор поддоменов, хостов и e-mail из открытых источников.",
     target_kind="host", timeout=300, install_hint="pipx install theHarvester",
     build_args=lambda t, o: ["theHarvester", "-d", host_of(t), "-b", o.get("sources") or "crtsh,bing,duckduckgo", "-l", str(int(o.get("limit", 300) or 300))],
     parse=parse_hostlist,
 ))
 _reg(Tool(
-    id="dnsx", name="dnsx", category="osint", binary="dnsx",
+    id="dnsx", name="dnsx", category="recon", binary="dnsx",
     description="Массовый DNS-резолвер: A/AAAA/CNAME/MX/NS/TXT.",
     target_kind="host", timeout=180, install_hint="go install github.com/projectdiscovery/dnsx/...",
     build_args=lambda t, o: ["dnsx", "-d", host_of(t), "-a", "-aaaa", "-cname", "-mx", "-ns", "-txt", "-resp", "-silent"],
@@ -531,7 +720,7 @@ _reg(Tool(
     parse=parse_httpx,
 ))
 _reg(Tool(
-    id="feroxbuster", name="feroxbuster", category="dirs", binary="feroxbuster",
+    id="feroxbuster", name="feroxbuster", category="scanning", binary="feroxbuster",
     description="Рекурсивный перебор путей с авто-углублением.",
     target_kind="url", timeout=900, install_hint="apt install feroxbuster",
     build_args=lambda t, o: [
@@ -544,7 +733,7 @@ _reg(Tool(
 ))
 
 _reg(Tool(
-    id="dalfox", name="Dalfox (XSS)", category="web_vuln", binary="dalfox",
+    id="dalfox", name="Dalfox (XSS)", category="vuln", binary="dalfox",
     description="Сканер XSS: параметры, DOM, обход фильтров, PoC.",
     target_kind="url", timeout=600, install_hint="go install github.com/hahwul/dalfox/v2@latest",
     build_args=lambda t, o: ["dalfox", "url", t, "--silence", "--no-color", "--skip-bav"]
@@ -552,7 +741,7 @@ _reg(Tool(
     parse=parse_dalfox,
 ))
 _reg(Tool(
-    id="wpscan", name="WPScan", category="web_vuln", binary="wpscan",
+    id="wpscan", name="WPScan", category="vuln", binary="wpscan",
     description="Сканер WordPress: ядро, уязвимые плагины/темы, пользователи.",
     target_kind="url", timeout=900, install_hint="apt install wpscan / gem install wpscan",
     build_args=lambda t, o: [
@@ -564,14 +753,537 @@ _reg(Tool(
 ))
 
 
+# ── A2.2: инструменты по фазам пентеста ──────────────────────────────────────
+# Хелперы опций: все значения приходят из UI и проходят валидацию до попадания
+# в argv (запуск без shell=True, но ограничиваем набор символов дополнительно).
+_OPT_TOKEN_RE = re.compile(r"^[A-Za-z0-9._~-]+$")
+_OPT_LIST_RE = re.compile(r"^[A-Za-z0-9._~,+-]+$")
+
+
+def _opt_int(o: dict, key: str, default: int, lo: int = 1, hi: int = 65535) -> int:
+    try:
+        val = int(o.get(key, default) or default)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(hi, val))
+
+
+def _opt_token(o: dict, key: str, default: str, pattern: re.Pattern = _OPT_TOKEN_RE) -> str:
+    val = str(o.get(key, "") or "").strip()
+    return val if val and pattern.match(val) else default
+
+
+def _opt_wordlist(o: dict, key: str = "wordlist") -> str:
+    # Словарь — либо один из известных путей, либо встроенный default.
+    val = str(o.get(key, "") or "").strip()
+    if val and os.path.isfile(val) and (val.startswith("/usr/share/") or val.startswith("/app/")):
+        return val
+    return default_wordlist()
+
+
+# ── Фаза 1: разведка (OSINT) ─────────────────────────────────────────────────
+_reg(Tool(
+    id="amass", name="Amass (passive)", category="recon", binary="amass",
+    description="Пассивное перечисление поддоменов: сертификаты, DNS-источники, архивы.",
+    target_kind="host", timeout=600, install_hint="apt install amass / go install .../amass/v4",
+    build_args=lambda t, o: ["amass", "enum", "-passive", "-d", host_of(t), "-timeout", "10"],
+    parse=parse_hostlist,
+))
+_reg(Tool(
+    id="findomain", name="Findomain", category="recon", binary="findomain",
+    description="Быстрый сбор поддоменов через API источников (crt.sh, Spyse и др.).",
+    target_kind="host", timeout=300, install_hint="https://github.com/Findomain/Findomain/releases",
+    build_args=lambda t, o: ["findomain", "-t", host_of(t), "-q"],
+    parse=parse_hostlist,
+))
+_reg(Tool(
+    id="whois", name="WHOIS", category="recon", binary="whois",
+    description="Регистратор, даты, неймсерверы и контакты домена/IP.",
+    target_kind="host", timeout=60, install_hint="apt install whois",
+    build_args=lambda t, o: ["whois", host_of(t)],
+    parse=make_generic_parser(re.compile(
+        r"(?i)(registrar|creation|created|updated|expir|name server|nserver|org|netname|country|e-?mail|abuse)")),
+))
+_reg(Tool(
+    id="katana", name="Katana", category="recon", binary="katana",
+    description="Веб-краулер нового поколения: карта страниц и эндпоинтов сайта.",
+    target_kind="url", timeout=300, install_hint="go install github.com/projectdiscovery/katana/cmd/katana@latest",
+    build_args=lambda t, o: [
+        "katana", "-u", t, "-silent", "-nc",
+        "-d", str(_opt_int(o, "depth", 2, 1, 10)),
+        "-c", str(_opt_int(o, "concurrency", 10, 1, 50)),
+    ],
+    parse=make_generic_parser(re.compile(r"^https?://"), "Эндпоинты не найдены"),
+))
+_reg(Tool(
+    id="gau", name="gau", category="recon", binary="gau",
+    description="Известные URL из Wayback Machine, Common Crawl, URLScan и VirusTotal.",
+    target_kind="host", timeout=300, install_hint="go install github.com/lc/gau/v2/cmd/gau@latest",
+    build_args=lambda t, o: ["gau", "--subs", "--threads", str(_opt_int(o, "threads", 5, 1, 20)), host_of(t)],
+    parse=make_generic_parser(re.compile(r"^https?://"), "URL в архивах не найдены"),
+))
+_reg(Tool(
+    id="waybackurls", name="waybackurls", category="recon", binary="waybackurls",
+    description="Исторические URL домена из Wayback Machine (старые параметры, бэкапы).",
+    target_kind="host", timeout=180, install_hint="go install github.com/tomnomnom/waybackurls@latest",
+    build_args=lambda t, o: ["waybackurls", host_of(t)],
+    parse=make_generic_parser(re.compile(r"^https?://"), "URL в архиве не найдены"),
+))
+_reg(Tool(
+    id="crtsh", name="crt.sh", category="recon", binary="curl",
+    description="Поддомены из журналов Certificate Transparency (crt.sh, JSON API).",
+    target_kind="host", timeout=60, install_hint="apt install curl",
+    build_args=lambda t, o: [
+        "curl", "-sS", "--max-time", "30",
+        f"https://crt.sh/?q=%25.{host_of(t)}&output=json",
+    ],
+    parse=parse_json_output,
+))
+_reg(Tool(
+    id="dnsenum", name="dnsenum", category="recon", binary="dnsenum",
+    description="DNS-перечисление: записи, неймсерверы, брутфорс поддоменов, AXFR.",
+    target_kind="host", timeout=600, install_hint="apt install dnsenum",
+    build_args=lambda t, o: [
+        "dnsenum", "--nocolor", "--noreverse",
+        "-f", _opt_wordlist(o),
+        host_of(t),
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(bruteforce|nameserver|mail|\bMX\b|\bNS\b|\bA\b|zone transfer)")),
+))
+_reg(Tool(
+    id="fierce", name="fierce", category="recon", binary="fierce",
+    description="Лёгкий DNS-сканер: перебор поддоменов и попытка трансфера зоны.",
+    target_kind="host", timeout=300, install_hint="pipx install fierce",
+    build_args=lambda t, o: ["fierce", "--domain", host_of(t)],
+    parse=make_generic_parser(re.compile(r"(?i)(found|ns |wildcard|zone|\d+\.\d+\.\d+\.\d+)")),
+))
+
+# ── Фаза 2: сканирование и перечисление ─────────────────────────────────────
+_reg(Tool(
+    id="masscan", name="Masscan", category="scanning", binary="masscan",
+    description="Очень быстрый сканер портов всего диапазона (осторожно с rate).",
+    target_kind="host", timeout=600, install_hint="apt install masscan",
+    build_args=lambda t, o: [
+        "masscan", t,
+        "-p", _opt_token(o, "ports", "1-1000", re.compile(r"^[0-9,\-]+$")),
+        "--rate", str(_opt_int(o, "rate", 1000, 10, 100000)),
+    ],
+    parse=make_generic_parser(re.compile(r"Discovered open port"), "Открытых портов не найдено"),
+))
+_reg(Tool(
+    id="rustscan", name="RustScan + Nmap", category="scanning", binary="rustscan",
+    description="Быстрый поиск открытых портов с передачей их в Nmap для -sV.",
+    target_kind="host", timeout=900, install_hint="https://github.com/RustScan/RustScan/releases",
+    build_args=lambda t, o: [
+        "rustscan", "-a", t, "-g",
+        "-b", str(_opt_int(o, "batch_size", 4500, 100, 65000)),
+        "-t", str(_opt_int(o, "timeout_ms", 3000, 500, 30000)),
+    ],
+    parse=make_generic_parser(re.compile(r"(\d+\.\d+\.\d+\.\d+|->|\d+/tcp)"), "Открытых портов не найдено"),
+))
+_reg(Tool(
+    id="naabu", name="Naabu", category="scanning", binary="naabu",
+    description="Быстрый SYN-сканер портов от ProjectDiscovery (JSON-вывод).",
+    target_kind="host", timeout=600, install_hint="go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest",
+    build_args=lambda t, o: [
+        "naabu", "-host", t, "-silent", "-json",
+        "-top-ports", _opt_token(o, "top_ports", "1000", re.compile(r"^(100|1000|full)$")),
+    ],
+    parse=parse_json_output,
+))
+_reg(Tool(
+    id="dirsearch", name="dirsearch", category="scanning", binary="dirsearch",
+    description="Классический перебор директорий и файлов веб-сервера по словарю.",
+    target_kind="url", timeout=600, install_hint="pipx install dirsearch",
+    build_args=lambda t, o: [
+        "dirsearch", "-u", t, "--no-color", "--quiet-mode",
+        "-w", _opt_wordlist(o),
+        "-t", str(_opt_int(o, "threads", 20, 1, 100)),
+    ] + (["-e", o["extensions"]] if re.match(r"^[A-Za-z0-9,]+$", str(o.get("extensions", ""))) else []),
+    parse=make_generic_parser(re.compile(r"^\s*\[?\d{3}\]?"), "Путей не найдено"),
+))
+_reg(Tool(
+    id="wfuzz", name="wfuzz", category="scanning", binary="wfuzz",
+    description="Фаззер веб-приложений: пути, параметры, виртуальные хосты (FUZZ).",
+    target_kind="url", timeout=600, install_hint="apt install wfuzz",
+    build_args=lambda t, o: [
+        "wfuzz", "--no-color",
+        "-u", t.rstrip("/") + "/FUZZ",
+        "-w", _opt_wordlist(o),
+        "-t", str(_opt_int(o, "threads", 20, 1, 100)),
+        "--hc", _opt_token(o, "hide_codes", "404", re.compile(r"^[0-9,]+$")),
+    ],
+    parse=make_generic_parser(re.compile(r"\d{3}\s"), "Ничего не найдено"),
+))
+_reg(Tool(
+    id="enum4linux", name="enum4linux-ng", category="scanning", binary="enum4linux-ng",
+    description="Перечисление SMB: пользователи, шары, политика паролей, ОС.",
+    target_kind="host", timeout=600, install_hint="apt install enum4linux-ng / pipx install enum4linux-ng",
+    build_args=lambda t, o: ["enum4linux-ng", "-A", t],
+    parse=make_generic_parser(re.compile(r"(?i)(os:|users|shares|domain|workgroup|password policy|sessions)")),
+))
+_reg(Tool(
+    id="smbclient", name="smbclient (-L)", category="scanning", binary="smbclient",
+    description="Список SMB-шар хоста без аутентификации (анонимный листинг).",
+    target_kind="host", timeout=60, install_hint="apt install smbclient",
+    build_args=lambda t, o: ["smbclient", "-L", t, "-N", "-g"],
+    parse=make_generic_parser(re.compile(r"(?i)(disk|ipc|printer)"), "Шар не найдено или доступ закрыт"),
+))
+_reg(Tool(
+    id="smbmap", name="smbmap", category="scanning", binary="smbmap",
+    description="Права доступа к SMB-шарам (READ/WRITE/NO ACCESS).",
+    target_kind="host", timeout=120, install_hint="apt install smbmap",
+    build_args=lambda t, o: ["smbmap", "-H", t, "-u", _opt_token(o, "user", "guest")],
+    parse=make_generic_parser(re.compile(r"(?i)(READ|WRITE|NO ACCESS|IPC|ADMIN)"), "Шар не найдено"),
+))
+_reg(Tool(
+    id="nbtscan", name="nbtscan", category="scanning", binary="nbtscan",
+    description="NetBIOS-имена и MAC-адреса хоста/сети (Windows-окружение).",
+    target_kind="host", timeout=60, install_hint="apt install nbtscan",
+    build_args=lambda t, o: ["nbtscan", "-q", t],
+    parse=make_generic_parser(re.compile(r"\d+\.\d+\.\d+\.\d+"), "NetBIOS не отвечает"),
+))
+_reg(Tool(
+    id="rpcclient", name="rpcclient", category="scanning", binary="rpcclient",
+    description="RPC-перечисление Windows/Samba: srvinfo и список пользователей домена.",
+    target_kind="host", timeout=120, install_hint="apt install samba-common-bin",
+    build_args=lambda t, o: [
+        "rpcclient", "-U", _opt_token(o, "user", ""), "-N",
+        "-c", _opt_token(o, "command", "srvinfo;enumdomusers", re.compile(r"^[A-Za-z0-9; _=-]+$")),
+        t,
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(user:|server|domain|platform|sid|rid)")),
+))
+_reg(Tool(
+    id="snmpwalk", name="snmpwalk", category="scanning", binary="snmpwalk",
+    description="Системная информация по SNMP v2c (system group, community по умолчанию public).",
+    target_kind="host", timeout=120, install_hint="apt install snmp",
+    build_args=lambda t, o: [
+        "snmpwalk", "-v2c", "-c", _opt_token(o, "community", "public"),
+        t, _opt_token(o, "oid", "1.3.6.1.2.1.1", re.compile(r"^[0-9.]+$")),
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(= |iso\.)"), "SNMP не отвечает или community неверен"),
+))
+_reg(Tool(
+    id="ldapsearch", name="ldapsearch", category="scanning", binary="ldapsearch",
+    description="Анонимный запрос к LDAP: namingContexts и базовые записи каталога.",
+    target_kind="host", timeout=60, install_hint="apt install ldap-utils",
+    build_args=lambda t, o: [
+        "ldapsearch", "-x", "-H", f"ldap://{t}:{_opt_int(o, 'port', 389, 1, 65535)}",
+        "-s", "base", "(objectclass=*)", "namingContexts",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(namingContexts|dn:|dc=)"), "Каталог не отвечает или анонимный доступ закрыт"),
+))
+_reg(Tool(
+    id="showmount", name="showmount", category="scanning", binary="showmount",
+    description="Экспортируемые NFS-каталоги хоста (rpcbind/mountd).",
+    target_kind="host", timeout=60, install_hint="apt install nfs-common",
+    build_args=lambda t, o: ["showmount", "-e", "--no-headers", t],
+    parse=make_generic_parser(re.compile(r"^/"), "Экспортируемых каталогов нет"),
+))
+_reg(Tool(
+    id="mtr", name="mtr", category="scanning", binary="mtr",
+    description="Трассировка с диагностикой потерь на каждом хопе (report-режим).",
+    target_kind="host", timeout=120, install_hint="apt install mtr-tiny",
+    build_args=lambda t, o: [
+        "mtr", "--report", "--no-dns",
+        "--report-cycles", str(_opt_int(o, "cycles", 3, 1, 10)),
+        host_of(t),
+    ],
+    parse=make_generic_parser(re.compile(r"^\s*\d+\."), "Маршрут не построен"),
+))
+
+# ── Фаза 3: анализ уязвимостей ──────────────────────────────────────────────
+_reg(Tool(
+    id="sqlmap", name="sqlmap", category="vuln", binary="sqlmap",
+    description="Автоматический поиск и эксплуатация SQL-инъекций (batch-режим, level/risk 1).",
+    target_kind="url", timeout=900, install_hint="apt install sqlmap",
+    build_args=lambda t, o: [
+        "sqlmap", "-u", t, "--batch", "--forms",
+        "--level", str(_opt_int(o, "level", 1, 1, 5)),
+        "--risk", str(_opt_int(o, "risk", 1, 1, 3)),
+        "--threads", str(_opt_int(o, "threads", 4, 1, 10)),
+        "--timeout", "30", "--random-agent",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(injectable|parameter|payload|dbms|back-end|technique)"), "SQLi не подтверждена"),
+))
+_reg(Tool(
+    id="xsstrike", name="XSStrike", category="vuln", binary="xsstrike",
+    description="Продвинутый сканер XSS: анализ отражений, обход WAF, фаззинг.",
+    target_kind="url", timeout=600, install_hint="git clone https://github.com/s0md3v/XSStrike",
+    build_args=lambda t, o: [
+        "xsstrike", "-u", t, "--crawl",
+        "-l", str(_opt_int(o, "level", 1, 1, 3)),
+        "--timeout", "30",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(vulnerable|payload|reflection|efficiency|confidence)"), "XSS не подтверждена"),
+))
+_reg(Tool(
+    id="commix", name="Commix", category="vuln", binary="commix",
+    description="Поиск и эксплуатация инъекций команд ОС (command injection).",
+    target_kind="url", timeout=900, install_hint="pipx install commix",
+    build_args=lambda t, o: [
+        "commix", "--url", t, "--batch",
+        "--level", str(_opt_int(o, "level", 1, 1, 3)),
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(vulnerable|payload|injection|technique|shell)"), "Command injection не подтверждена"),
+))
+_reg(Tool(
+    id="joomscan", name="JoomScan", category="vuln", binary="joomscan",
+    description="Сканер Joomla: версия ядра, уязвимые компоненты, мисконфигурации.",
+    target_kind="url", timeout=600, install_hint="git clone https://github.com/OWASP/joomscan",
+    build_args=lambda t, o: ["joomscan", "-u", t, "-ec"],
+    parse=make_generic_parser(re.compile(r"(?i)(version|vulnerab|component|CVE|firewall|directory)"), "Существенных находок нет"),
+))
+_reg(Tool(
+    id="droopescan", name="droopescan", category="vuln", binary="droopescan",
+    description="Сканер CMS (Drupal, WordPress, Joomla, Moodle, SilverStripe): версии и плагины.",
+    target_kind="url", timeout=900, install_hint="pipx install droopescan",
+    build_args=lambda t, o: [
+        "droopescan", "scan",
+        _opt_token(o, "cms", "auto", re.compile(r"^(auto|drupal|wordpress|joomla|moodle|silverstripe)$")),
+        "-u", t, "--no-progress",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(version|plugin|theme|vulnerab|interesting|readme|changelog)"), "Существенных находок нет"),
+))
+_reg(Tool(
+    id="cmseek", name="CMSeeK", category="vuln", binary="cmseek",
+    description="Определение CMS и аудит (WordPress, Joomla, Drupal и 180+ других).",
+    target_kind="url", timeout=900, install_hint="git clone https://github.com/Tuhinshubhra/CMSeeK",
+    build_args=lambda t, o: ["cmseek", "-u", t, "--batch", "--follow-redirect"],
+    parse=make_generic_parser(re.compile(r"(?i)(cms|version|vulnerab|detected|readme|license)"), "CMS не определена"),
+))
+_reg(Tool(
+    id="arjun", name="Arjun", category="vuln", binary="arjun",
+    description="Поиск скрытых HTTP-параметров эндпоинта (для дальнейшего фаззинга).",
+    target_kind="url", timeout=300, install_hint="pipx install arjun",
+    build_args=lambda t, o: [
+        "arjun", "-u", t, "--stable",
+        "-t", str(_opt_int(o, "threads", 5, 1, 25)),
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(parameter|heuristic|found|query|json)"), "Параметры не найдены"),
+))
+_reg(Tool(
+    id="sslyze", name="SSLyze", category="vuln", binary="sslyze",
+    description="Быстрый TLS-аудит: Heartbleed, ROBOT, downgrade, сертификат (Mozilla-совместимость).",
+    target_kind="host", timeout=300, install_hint="pipx install sslyze",
+    build_args=lambda t, o: [
+        "sslyze", "--regular",
+        f"{t}:{_opt_int(o, 'port', 443, 1, 65535)}",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(vulnerable|accepted|certificate|TLS|weak|rejected|error)")),
+))
+_reg(Tool(
+    id="searchsploit", name="searchsploit", category="vuln", binary="searchsploit",
+    description="Поиск эксплойтов в локальной базе Exploit-DB. Цель = поисковый запрос (например, «vsftpd 2.3.4»).",
+    target_kind="query", timeout=60, install_hint="apt install exploitdb",
+    build_args=lambda t, o: ["searchsploit", "--colour", t],
+    parse=make_generic_parser(re.compile(r"(?i)(exploit|shellcode|\.(py|rb|c|pl|txt|php)\s*\|)"), "Эксплойтов не найдено"),
+))
+
+# ── Фаза 5: брутфорс / пароли ───────────────────────────────────────────────
+_BRUTE_SERVICES_RE = re.compile(r"^(ssh|ftp|telnet|rdp|smb|smtp|pop3|imap|mysql|postgres|mssql|vnc|http-get|http-post-form)$")
+
+
+_reg(Tool(
+    id="hydra", name="Hydra", category="brute", binary="hydra",
+    description="Онлайн-брутфорс SSH/FTP/RDP/SMB/HTTP и др. Опции: user, wordlist, service.",
+    target_kind="host", timeout=900, install_hint="apt install hydra",
+    build_args=lambda t, o: _hydra_args(t, o),
+    parse=make_generic_parser(re.compile(r"(?i)(login:|password:|host:|success|valid|attempt)"), "Валидных пар нет"),
+))
+_reg(Tool(
+    id="medusa", name="Medusa", category="brute", binary="medusa",
+    description="Параллельный брутфорс логинов (модульный). Опции: user, wordlist, module.",
+    target_kind="host", timeout=900, install_hint="apt install medusa",
+    build_args=lambda t, o: [
+        "medusa", "-h", t,
+        "-u", _opt_token(o, "user", "root"),
+        "-P", _opt_wordlist(o),
+        "-M", _opt_token(o, "module", "ssh", re.compile(r"^[a-z0-9_-]+$")),
+        "-t", str(_opt_int(o, "threads", 4, 1, 16)),
+        "-f",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(success|account|password|found|error)"), "Валидных пар нет"),
+))
+_reg(Tool(
+    id="patator", name="Patator", category="brute", binary="patator",
+    description="Гибкий брутфорсер. Опции: module (ssh_login/ftp_login/…), user, wordlist.",
+    target_kind="host", timeout=900, install_hint="apt install patator / pipx install patator",
+    build_args=lambda t, o: _patator_args(t, o),
+    parse=make_generic_parser(re.compile(r"(?i)(\d{3}\s|candidate|hits|done|code=)"), "Валидных пар нет"),
+))
+_reg(Tool(
+    id="ncrack", name="Ncrack", category="brute", binary="ncrack",
+    description="Сетевой брутфорс от Nmap: SSH, RDP, FTP, HTTP. Опции: user, wordlist, service.",
+    target_kind="host", timeout=900, install_hint="apt install ncrack",
+    build_args=lambda t, o: [
+        "ncrack",
+        "-u", _opt_token(o, "user", "root"),
+        "-P", _opt_wordlist(o),
+        f"{_opt_token(o, 'service', 'ssh', _BRUTE_SERVICES_RE)}://{t}",
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(discovered|credentials|success|valid|failed)"), "Валидных пар нет"),
+))
+_reg(Tool(
+    id="john", name="John the Ripper", category="brute", binary="john",
+    description="Офлайн-подбор пароля по хэшу. Цель = хэш (например, $6$salt$hash). Опция: wordlist.",
+    target_kind="query", timeout=900, install_hint="apt install john",
+    build_args=lambda t, o: _john_args(t, o),
+    parse=make_generic_parser(re.compile(r"(?i)(loaded|cracked|password|guess|session)"), "Хэш не подобран"),
+))
+_reg(Tool(
+    id="hashcat", name="hashcat", category="brute", binary="hashcat",
+    description="GPU/CPU-подбор по хэшу. Цель = хэш. Опции: mode (напр. 0=MD5, 1000=NTLM), wordlist.",
+    target_kind="query", timeout=900, install_hint="apt install hashcat",
+    build_args=lambda t, o: _hashcat_args(t, o),
+    parse=make_generic_parser(re.compile(r"(?i)(cracked|recovered|status|hash|digest)"), "Хэш не подобран или GPU недоступен"),
+))
+_reg(Tool(
+    id="cewl", name="CeWL", category="brute", binary="cewl",
+    description="Генерация словаря из содержимого сайта (слова страниц вглубь на depth).",
+    target_kind="url", timeout=300, install_hint="apt install cewl",
+    build_args=lambda t, o: [
+        "cewl",
+        "-d", str(_opt_int(o, "depth", 2, 1, 10)),
+        "-m", str(_opt_int(o, "min_len", 5, 1, 30)),
+        t,
+    ],
+    parse=make_generic_parser(re.compile(r"^[A-Za-z0-9_@#%+.-]{3,}$"), "Слов не собрано"),
+))
+_reg(Tool(
+    id="crunch", name="crunch", category="brute", binary="crunch",
+    description="Генератор словарей по шаблону (min/max длина, алфавит). Цель не нужна.",
+    target_kind="none", timeout=120, install_hint="apt install crunch",
+    build_args=lambda t, o: [
+        "crunch",
+        str(_opt_int(o, "min_len", 4, 1, 16)),
+        str(_opt_int(o, "max_len", 6, 1, 16)),
+    ] + ([_opt_token(o, "charset", "", re.compile(r"^[A-Za-z0-9@#%+\-_.,]+$"))] if o.get("charset") else [])
+      + ["-o", os.path.join(AUDIT_DIR, f"crunch_{_opt_int(o, 'min_len', 4, 1, 16)}-{_opt_int(o, 'max_len', 6, 1, 16)}.txt")],
+    parse=make_generic_parser(re.compile(r"(?i)(words|mb|gb|generation|100%)"), "Словарь сгенерирован в audit_runs/"),
+))
+
+# ── Фаза 7: утилиты ─────────────────────────────────────────────────────────
+_reg(Tool(
+    id="dig", name="dig", category="utils", binary="dig",
+    description="DNS-запросы: A/AAAA/MX/NS/TXT/ANY с секциями ответа.",
+    target_kind="host", timeout=30, install_hint="apt install dnsutils",
+    build_args=lambda t, o: [
+        "dig", "+noall", "+answer", "+comments",
+        host_of(t),
+        _opt_token(o, "type", "ANY", re.compile(r"^[A-Z]{1,10}$")),
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(\bIN\b|status:|answer)"), "Записей нет"),
+))
+_reg(Tool(
+    id="openssl_cert", name="OpenSSL (cert)", category="utils", binary="openssl",
+    description="Сертификат и параметры TLS-сессии хоста (s_client -brief).",
+    target_kind="host", timeout=40, install_hint="apt install openssl",
+    build_args=lambda t, o: [
+        "timeout", "20",
+        "openssl", "s_client", "-brief",
+        "-connect", f"{t}:{_opt_int(o, 'port', 443, 1, 65535)}",
+        "-servername", host_of(t),
+    ],
+    parse=make_generic_parser(re.compile(r"(?i)(protocol|cipher|certificate|verification|subject|issuer|expiry)"), "TLS не отвечает"),
+))
+_reg(Tool(
+    id="host", name="host", category="utils", binary="host",
+    description="Быстрое разрешение имени: A/AAAA/MX записи хоста.",
+    target_kind="host", timeout=30, install_hint="apt install dnsutils",
+    build_args=lambda t, o: ["host", "-v", host_of(t)],
+    parse=make_generic_parser(re.compile(r"(?i)(address|mail|alias|name)"), "Не разрешён"),
+))
+_reg(Tool(
+    id="jq", name="jq", category="utils", binary="jq",
+    description="Обработка JSON. Цель = JSON-строка, опция filter — jq-выражение (по умолчанию «.»).",
+    target_kind="query", timeout=30, install_hint="apt install jq",
+    build_args=lambda t, o: _jq_args(t, o),
+    parse=make_generic_parser(re.compile(r".+"), "Пустой результат"),
+))
+
+
+def _hydra_args(target: str, o: dict) -> List[str]:
+    service = _opt_token(o, "service", "ssh", _BRUTE_SERVICES_RE)
+    default_port = {"ssh": 22, "ftp": 21, "telnet": 23, "rdp": 3389, "smb": 445,
+                    "smtp": 25, "pop3": 110, "imap": 143, "mysql": 3306,
+                    "postgres": 5432, "mssql": 1433, "vnc": 5900,
+                    "http-get": 80, "http-post-form": 80}.get(service, 22)
+    return [
+        "hydra", "-f",
+        "-t", str(_opt_int(o, "threads", 4, 1, 64)),
+        "-l", _opt_token(o, "user", "root"),
+        "-P", _opt_wordlist(o),
+        "-s", str(_opt_int(o, "port", default_port, 1, 65535)),
+        f"{service}://{target}",
+    ]
+
+
+def _patator_args(target: str, o: dict) -> List[str]:
+    args = [
+        "patator",
+        _opt_token(o, "module", "ssh_login", re.compile(r"^[a-z0-9_]+$")),
+        f"host={target}",
+        f"user={_opt_token(o, 'user', 'root')}",
+        "password=FILE0",
+        f"0={_opt_wordlist(o)}",
+        "-t", str(_opt_int(o, "threads", 4, 1, 50)),
+    ]
+    rate = _opt_int(o, "rate_limit", 0, 0, 100)
+    if rate > 0:
+        args += ["--rate-limit", str(rate)]
+    return args
+
+
+def _john_args(target: str, o: dict) -> List[str]:
+    hash_file = os.path.join(AUDIT_DIR, "john_hash.txt")
+    with open(hash_file, "w", encoding="utf-8") as f:
+        f.write(target + "\n")
+    args = ["john", "--wordlist=" + _opt_wordlist(o)]
+    fmt = _opt_token(o, "format", "", re.compile(r"^[A-Za-z0-9_-]+$"))
+    if fmt:
+        args.append("--format=" + fmt)
+    args.append(hash_file)
+    return args
+
+
+def _hashcat_args(target: str, o: dict) -> List[str]:
+    hash_file = os.path.join(AUDIT_DIR, "hashcat_hash.txt")
+    with open(hash_file, "w", encoding="utf-8") as f:
+        f.write(target + "\n")
+    return [
+        "hashcat",
+        "-m", str(_opt_int(o, "mode", 0, 0, 99999)),
+        "-a", "0",
+        hash_file,
+        _opt_wordlist(o),
+        "--potfile-disable", "--quiet", "--force",
+    ]
+
+
+def _jq_args(target: str, o: dict) -> List[str]:
+    json_file = os.path.join(AUDIT_DIR, "jq_input.json")
+    with open(json_file, "w", encoding="utf-8") as f:
+        f.write(target)
+    # Фильтр без внешних ссылок и шелл-подстановок — только синтаксис jq.
+    filt = str(o.get("filter", ".") or ".")[:200]
+    if "\x00" in filt:
+        filt = "."
+    return ["jq", "-r", filt, json_file]
+
+
 def list_tools() -> List[dict]:
     result = []
     for tool in TOOLS.values():
+        meta = _category_meta(tool.category)
         result.append({
             "id": tool.id,
             "name": tool.name,
             "category": tool.category,
-            "category_label": CATEGORIES.get(tool.category, tool.category),
+            "category_label": meta["label"],
+            "category_order": meta["order"],
+            "phase_hint": meta["phase_hint"],
             "description": tool.description,
             "binary": tool.binary,
             "target_kind": tool.target_kind,
@@ -579,6 +1291,8 @@ def list_tools() -> List[dict]:
             "install_hint": tool.install_hint,
             "timeout": tool.timeout,
         })
+    # Сортировка: фаза → доступность → имя, чтобы UI выдавал рабочее первым.
+    result.sort(key=lambda t: (t["category_order"], not t["available"], t["name"].lower()))
     return result
 
 
@@ -685,6 +1399,14 @@ def run_audit_task(task_id: str, tool_id: str, target_raw: str, scan_id: Optiona
     except Exception as exc:  # noqa: BLE001
         findings = [_mk("Ошибка парсинга вывода", str(exc), "info")]
 
+    # A2.3: проставляем источник/хост/порт — понадобится сводной панели находок (A6).
+    task_host = host_of(target) if tool.target_kind in ("url", "host") else ""
+    task_port = str(options.get("port", "") or "")
+    for f in findings:
+        f["source"] = f.get("source") or tool.id
+        f["host"] = f.get("host") or task_host
+        f["port"] = f.get("port") or task_port
+
     findings.sort(key=lambda f: _SEV_ORDER.get(f["severity"], 0), reverse=True)
     summary = _summarize(findings)
     final_status = "done" if process.returncode in (0, 1) else "done"  # многие сканеры возвращают 1 при находках
@@ -724,3 +1446,4 @@ def cancel_audit_task(task_id: str) -> bool:
 
 def get_audit_status(task_id: str) -> Optional[AuditTaskStatus]:
     return audit_statuses.get(task_id)
+
