@@ -47,9 +47,9 @@
 }
 
 .quickLabel {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-right: 4px;
@@ -67,18 +67,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
   padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg);
 }
 
 .chipRemove {
   background: transparent;
   border: none;
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -87,11 +87,11 @@
 }
 
 .chipRemove:hover {
-  color: var(--color-danger-base);
+  color: var(--pip-danger);
 }
 
 .emptyChips {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   font-style: italic;
 }
 
@@ -103,28 +103,28 @@
 }
 
 .summary {
-  font-size: var(--font-size-md);
+  font-size: var(--pip-fs-md);
 }
 
 .resultTable {
   max-height: 300px;
   overflow-y: auto;
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--pip-border);
 }
 
 .resultTable table {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .resultTable th {
   text-align: left;
   padding: 8px 12px;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-secondary);
-  border-bottom: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  color: var(--pip-fg-dim);
+  border-bottom: 2px solid var(--pip-border);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -132,11 +132,11 @@
 
 .resultTable td {
   padding: 6px 12px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
 }
 
 .resultTable tbody tr:hover {
-  background: var(--color-accent-dim);
+  background: var(--pip-fg-ghost);
 }
 
 /* Адаптивность */

@@ -15,14 +15,14 @@ export const HostCard: React.FC<HostCardProps> = ({ host }) => {
         <div>
           <span className={styles.ip}>{host.ip}</span>
           {host.hostname && (
-            <span style={{ color: 'var(--color-text-secondary)', marginLeft: '8px' }}>
+            <span style={{ color: 'var(--pip-fg-dim)', marginLeft: '8px' }}>
               ({host.hostname})
             </span>
           )}
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <StatusBadge label={host.status} variant={host.status === 'up' ? 'accent' : 'muted'} />
-          <span style={{ color: 'var(--color-text-muted)' }}>{openPorts.length} open</span>
+          <span style={{ color: 'var(--pip-fg-dim)' }}>{openPorts.length} open</span>
           <NeonButton size="sm" onClick={toggleExpand}>
             {expanded ? '−' : '+'}
           </NeonButton>
@@ -30,8 +30,8 @@ export const HostCard: React.FC<HostCardProps> = ({ host }) => {
       </div>
       {expanded && (
         <div className={styles.details}>
-          {host.os && <div><span style={{ color: 'var(--color-text-secondary)' }}>OS:</span> {host.os}</div>}
-          {host.uptime && <div><span style={{ color: 'var(--color-text-secondary)' }}>Uptime:</span> {host.uptime}s</div>}
+          {host.os && <div><span style={{ color: 'var(--pip-fg-dim)' }}>OS:</span> {host.os}</div>}
+          {host.uptime && <div><span style={{ color: 'var(--pip-fg-dim)' }}>Uptime:</span> {host.uptime}s</div>}
           <div className={styles.portChips}>
             {openPorts.map(p => (
               <span key={`${p.port}-${p.protocol}`} className={styles.portChip}>

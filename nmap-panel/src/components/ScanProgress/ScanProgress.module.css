@@ -12,18 +12,18 @@
 }
 
 .stage {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
   padding: 4px 0;
 }
 .stageLabel {
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   margin-right: 8px;
 }
 .stageValue {
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 8px var(--color-accent-glow);
+  color: var(--pip-fg);
+  text-shadow: 0 0 8px var(--pip-fg);
 }

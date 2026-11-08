@@ -7,9 +7,9 @@
 }
 
 .scanId {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .modeSwitcher {
@@ -29,6 +29,6 @@
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   gap: 8px;
 }

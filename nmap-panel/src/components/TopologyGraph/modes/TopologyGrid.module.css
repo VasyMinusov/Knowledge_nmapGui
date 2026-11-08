@@ -7,8 +7,8 @@
 }
 
 .subnetGroup {
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
   padding: 12px;
 }
 
@@ -17,26 +17,26 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--pip-border);
   margin-bottom: 12px;
 }
 
 .subnetIcon {
-  color: var(--color-accent-neon);
+  color: var(--pip-fg);
   font-size: 20px;
 }
 
 .subnetName {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: bold;
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
   flex: 1;
 }
 
 .subnetStats {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .hostGrid {
@@ -50,8 +50,8 @@
   flex-direction: column;
   align-items: center;
   padding: 12px 8px;
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
@@ -60,13 +60,12 @@
 
 .hostTile:hover {
   transform: scale(1.02);
-  border-color: var(--color-accent-neon);
-  box-shadow: 0 0 15px var(--color-accent-glow);
+  border-color: var(--pip-fg);
 }
 
 .hostTile.up {
-  border-color: var(--color-accent-neon);
-  background: rgba(102, 255, 51, 0.05);
+  border-color: var(--pip-fg);
+  background: rgba(51, 255, 102, 0.05);
 }
 
 .hostTile.down {
@@ -80,7 +79,7 @@
 }
 
 .icon {
-  color: var(--color-accent-neon);
+  color: var(--pip-fg);
 }
 
 .iconDown {
@@ -88,7 +87,7 @@
 }
 
 .ip {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: bold;
   font-size: 12px; /* было 11px */
   word-break: break-all;
@@ -97,9 +96,9 @@
 }
 
 .hostname {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 10px; /* было 9px */
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -110,14 +109,13 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background: var(--color-accent-neon);
+  background: var(--pip-fg);
   color: #000;
   font-size: 11px; /* было 10px */
   font-weight: bold;
   padding: 0 8px;
-  border: 2px solid var(--color-bg-primary);
+  border: 2px solid var(--pip-bg);
   border-radius: 2px;
-  box-shadow: 0 0 8px var(--color-accent-neon);
 }
 
 .portsPreview {
@@ -129,22 +127,22 @@
 }
 
 .portChip {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 9px; /* было 8px */
-  background: var(--color-bg-primary);
+  background: var(--pip-bg);
   padding: 0 6px;
-  border: 1px solid var(--color-accent-neon);
-  color: var(--color-accent-neon);
+  border: 1px solid var(--pip-fg);
+  color: var(--pip-fg);
 }
 
 .more {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 9px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 .empty {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   padding: 20px;
   text-align: center;
 }

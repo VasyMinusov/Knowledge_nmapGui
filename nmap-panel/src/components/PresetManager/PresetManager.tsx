@@ -8,7 +8,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({ presets, onSelect,
   if (presets.length === 0) {
     return (
       <div>
-        <p style={{ color: 'var(--color-text-muted)' }}>Пока нет пресетов.</p>
+        <p style={{ color: 'var(--pip-fg-dim)' }}>Пока нет пресетов.</p>
         <NeonButton size="md" onClick={onCreate}>+ Создать пресет</NeonButton>
       </div>
     );

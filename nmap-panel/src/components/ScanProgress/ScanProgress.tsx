@@ -18,7 +18,7 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({ progress = 0, status
           pulse={isRunning}
         />
         {isRunning && <NeonSpinner size={24} label={stage || "Scanning..."} />}
-        {summary && <span style={{ color: 'var(--color-text-secondary)' }}>{summary}</span>}
+        {summary && <span style={{ color: 'var(--pip-fg-dim)' }}>{summary}</span>}
       </div>
       {stage && !isDone && !isError && (
         <div className={styles.stage}>

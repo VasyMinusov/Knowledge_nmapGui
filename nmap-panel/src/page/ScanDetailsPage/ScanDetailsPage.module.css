@@ -2,7 +2,7 @@
 .page {
   position: fixed;
   inset: 0;
-  background: var(--color-bg-primary);
+  background: var(--pip-bg);
   z-index: 10000;
   padding: 24px;
   overflow: hidden;
@@ -18,7 +18,7 @@
   gap: 12px;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 3px solid var(--color-border-default);
+  border-bottom: 3px solid var(--pip-border);
   flex-shrink: 0;
 }
 
@@ -29,9 +29,9 @@
 }
 
 .scanInfo {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .content {
@@ -41,9 +41,9 @@
   resize: vertical;
   min-height: 200px;
   max-height: 80vh;
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--pip-border);
   padding: 12px;
-  background: var(--color-bg-secondary);
+  background: var(--pip-bg);
   border-radius: 4px;
 }
 
@@ -51,8 +51,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .loading, .error {
@@ -60,6 +60,6 @@
   justify-content: center;
   align-items: center;
   height: 100%;
-  font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
+  font-size: var(--pip-fs-lg);
+  color: var(--pip-fg-dim);
 }

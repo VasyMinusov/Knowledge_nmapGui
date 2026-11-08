@@ -78,9 +78,9 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
   });
 
   const getCvssColor = (cvss: number): string => {
-    if (cvss >= 7.0) return 'var(--color-danger-base)';
-    if (cvss >= 4.0) return '#ffb800';
-    return 'var(--color-accent-neon)';
+    if (cvss >= 7.0) return 'var(--pip-danger)';
+    if (cvss >= 4.0) return 'var(--pip-warning)';
+    return 'var(--pip-fg)';
   };
 
   if (loading) {
@@ -97,7 +97,7 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
     <IndustrialCard variant="accent">
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
         <GlitchText text="УЯЗВИМОСТИ" />
-        {scanId && <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Скан: {scanId.slice(0, 8)}</span>}
+        {scanId && <span style={{ fontSize: 'var(--pip-fs-sm)', color: 'var(--pip-fg-dim)' }}>Скан: {scanId.slice(0, 8)}</span>}
       </div>
 
       {!scanId && stats && (
@@ -116,15 +116,15 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
           </div>
           <div className={styles.statItem}>
             <span className={styles.statLabel}>Высокие</span>
-            <span className={styles.statValue} style={{ color: 'var(--color-danger-base)' }}>{stats.high}</span>
+            <span className={styles.statValue} style={{ color: 'var(--pip-danger)' }}>{stats.high}</span>
           </div>
           <div className={styles.statItem}>
             <span className={styles.statLabel}>Средние</span>
-            <span className={styles.statValue} style={{ color: '#ffb800' }}>{stats.medium}</span>
+            <span className={styles.statValue} style={{ color: 'var(--pip-warning)' }}>{stats.medium}</span>
           </div>
           <div className={styles.statItem}>
             <span className={styles.statLabel}>Низкие</span>
-            <span className={styles.statValue} style={{ color: 'var(--color-accent-neon)' }}>{stats.low}</span>
+            <span className={styles.statValue} style={{ color: 'var(--pip-fg)' }}>{stats.low}</span>
           </div>
         </div>
       )}
@@ -154,7 +154,7 @@ export const VulnerabilitiesList: React.FC<VulnerabilitiesListProps> = ({ scanId
       </div>
 
       {filteredVulns.length === 0 ? (
-        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pip-fg-dim)' }}>
           Уязвимости не найдены
         </div>
       ) : (

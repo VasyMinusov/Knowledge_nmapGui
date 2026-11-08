@@ -3,20 +3,19 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 2px solid var(--color-border-default);
-  background: var(--color-bg-secondary);
+  border: 2px solid var(--pip-border);
+  background: var(--pip-bg);
   padding: 14px;
   position: relative;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: transform 0.15s;
 }
 
 .card:hover {
-  box-shadow: 0 0 16px var(--color-accent-dim);
 }
 
 .unavailable {
   opacity: 0.62;
-  border-color: var(--color-text-muted);
+  border-color: var(--pip-fg-dim);
 }
 
 .head {
@@ -27,13 +26,13 @@
 
 .icon {
   font-size: 16px;
-  filter: drop-shadow(0 0 4px var(--color-accent-glow));
+  filter: drop-shadow(0 0 4px var(--pip-fg));
 }
 
 .name {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
   letter-spacing: 0.5px;
 }
 
@@ -42,31 +41,31 @@
 }
 
 .category {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 .desc {
   margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   line-height: 1.4;
   min-height: 2.4em;
 }
 
 .hint {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 11px;
-  color: var(--color-text-muted);
-  border-left: 2px solid var(--color-text-muted);
+  color: var(--pip-fg-dim);
+  border-left: 2px solid var(--pip-fg-dim);
   padding-left: 8px;
 }
 
 .hint code {
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 .options {
@@ -74,8 +73,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border: 1px dashed var(--color-border-default);
-  background: var(--color-bg-tertiary);
+  border: 1px dashed var(--pip-border);
+  background: var(--pip-bg);
 }
 
 .actions {
@@ -84,3 +83,4 @@
   margin-top: 4px;
   align-items: center;
 }
+

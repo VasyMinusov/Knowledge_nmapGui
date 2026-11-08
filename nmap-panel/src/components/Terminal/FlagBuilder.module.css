@@ -1,14 +1,14 @@
 /* src/components/Terminal/FlagBuilder.module.css */
 .state {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   padding: 20px 4px;
 }
 .stateError {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-danger-base);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-danger);
   padding: 20px 4px;
   display: flex;
   flex-direction: column;
@@ -18,9 +18,9 @@
 
 /* ── Выбор инструмента ── */
 .pickerHint {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 12px;
@@ -39,34 +39,34 @@
   text-align: left;
   padding: 14px;
   cursor: pointer;
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
   color: inherit;
   font: inherit;
 }
 
 .toolCard.dim {
   opacity: 0.6;
-  border-color: var(--color-text-muted);
+  border-color: var(--pip-fg-dim);
 }
 
 .toolIcon {
   font-size: 18px;
-  filter: drop-shadow(0 0 6px var(--color-accent-glow));
+  filter: drop-shadow(0 0 6px var(--pip-fg));
 }
 
 .toolName {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: 700;
-  font-size: var(--font-size-md);
-  color: var(--color-text-primary);
-  text-shadow: 0 0 8px rgba(102, 255, 51, 0.5);
+  font-size: var(--pip-fs-md);
+  color: var(--pip-fg);
+  text-shadow: 0 0 8px rgba(51, 255, 102, 0.5);
   letter-spacing: 0.5px;
 }
 
 .toolDesc {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   line-height: 1.4;
   min-height: 2.6em;
 }
@@ -79,9 +79,9 @@
   margin-top: 4px;
 }
 .toolFoot code {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 /* ── Конфигуратор ── */
@@ -98,11 +98,11 @@
 }
 
 .builderTitle {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: 700;
-  font-size: var(--font-size-lg);
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 12px var(--color-accent-glow);
+  font-size: var(--pip-fs-lg);
+  color: var(--pip-fg);
+  text-shadow: 0 0 12px var(--pip-fg);
   letter-spacing: 1px;
 }
 
@@ -117,19 +117,18 @@
 }
 
 .group {
-  border: 2px solid var(--color-border-default);
-  background: var(--color-bg-secondary);
+  border: 2px solid var(--pip-border);
+  background: var(--pip-bg);
 }
 
 .groupName {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--color-bg-primary);
-  background: var(--color-accent-neon);
+  color: var(--pip-bg);
+  background: var(--pip-fg);
   padding: 5px 10px;
-  box-shadow: 0 0 12px var(--color-accent-dim);
 }
 
 .groupBody {
@@ -139,14 +138,13 @@
 
 .flag {
   padding: 10px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
   transition: background 0.15s;
 }
 .flag:last-child { border-bottom: none; }
 
 .flagOn {
-  background: var(--color-accent-dim);
-  box-shadow: inset 3px 0 0 var(--color-accent-neon);
+  background: var(--pip-fg-ghost);
 }
 
 .flagTop {
@@ -157,17 +155,17 @@
 }
 
 .flagCode {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 11px;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border-default);
+  color: var(--pip-fg-dim);
+  border: 1px solid var(--pip-border);
   padding: 1px 6px;
   white-space: nowrap;
 }
 
 .flagDesc {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   line-height: 1.4;
   margin-top: 4px;
 }
@@ -184,30 +182,30 @@
   gap: 8px;
   position: sticky;
   bottom: 0;
-  background: var(--color-bg-primary);
+  background: var(--pip-bg);
   padding-top: 8px;
 }
 
 .previewLabel {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 .preview {
-  border: 2px solid var(--color-accent-neon);
-  background: var(--color-bg-primary);
+  border: 2px solid var(--pip-fg);
+  background: var(--pip-bg);
   padding: 12px 14px;
   overflow-x: auto;
 }
 
 .preview code {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 13px;
-  color: var(--color-text-primary);
-  text-shadow: 0 0 8px rgba(102, 255, 51, 0.55);
+  color: var(--pip-fg);
+  text-shadow: 0 0 8px rgba(51, 255, 102, 0.55);
   white-space: pre;
 }
 
@@ -220,9 +218,9 @@
 
 .example {
   background: transparent;
-  border: 1px dashed var(--color-border-default);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
+  border: 1px dashed var(--pip-border);
+  color: var(--pip-fg-dim);
+  font-family: var(--pip-font);
   font-size: 11px;
   padding: 6px 10px;
   cursor: pointer;
@@ -232,11 +230,12 @@
   white-space: nowrap;
 }
 .example:hover:not(:disabled) {
-  color: var(--color-text-secondary);
-  border-color: var(--color-accent-neon);
+  color: var(--pip-fg-dim);
+  border-color: var(--pip-fg);
 }
 .example code { color: inherit; }
 
 @media (max-width: 768px) {
   .groups { grid-template-columns: 1fr; }
 }
+

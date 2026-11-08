@@ -1,17 +1,15 @@
 /* src/components/Terminal/TerminalConsole.module.css */
 .console {
   position: relative;
-  border: 3px solid var(--color-border-default);
+  border: 3px solid var(--pip-border);
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(102, 255, 51, 0.08), transparent 60%),
-    var(--color-bg-primary);
-  box-shadow: 0 0 24px var(--color-accent-dim), inset 0 0 60px rgba(0, 0, 0, 0.55);
+    radial-gradient(ellipse at 50% 0%, rgba(51, 255, 102, 0.08), transparent 60%),
+    var(--pip-bg);
   overflow: hidden;
   cursor: text;
 }
 
 .console.busy {
-  box-shadow: 0 0 30px var(--color-accent-glow), inset 0 0 60px rgba(0, 0, 0, 0.55);
 }
 
 .scanlines {
@@ -51,8 +49,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: 2px solid var(--color-border-default);
-  background: var(--color-bg-tertiary);
+  border-bottom: 2px solid var(--pip-border);
+  background: var(--pip-bg);
 }
 
 .dot {
@@ -61,21 +59,21 @@
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.4);
 }
-.dot[data-c='r'] { background: #ff5555; box-shadow: 0 0 8px #ff5555; }
-.dot[data-c='y'] { background: #ffcc33; box-shadow: 0 0 8px #ffcc33; }
-.dot[data-c='g'] { background: var(--color-accent-neon); box-shadow: 0 0 8px var(--color-accent-glow); }
+.dot[data-c='r'] { background: var(--pip-danger); }
+.dot[data-c='y'] { background: var(--pip-warning); }
+.dot[data-c='g'] { background: var(--pip-fg); }
 
 .barTitle {
   margin-left: 8px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
-.ok { color: var(--color-accent-neon); text-shadow: 0 0 8px var(--color-accent-glow); }
-.fail { color: var(--color-danger-base); text-shadow: 0 0 8px var(--color-danger-glow); }
+.ok { color: var(--pip-fg); text-shadow: 0 0 8px var(--pip-fg); }
+.fail { color: var(--pip-danger); text-shadow: 0 0 8px var(--pip-danger); }
 
 .barActions {
   margin-left: auto;
@@ -95,19 +93,19 @@
 
 .pre {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 13px;
   line-height: 1.5;
-  color: var(--color-text-primary);
-  text-shadow: 0 0 6px rgba(102, 255, 51, 0.45);
+  color: var(--pip-fg);
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.45);
   white-space: pre-wrap;
   word-break: break-word;
   display: inline;
 }
 
 .runCursor {
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 10px var(--color-accent-glow-strong);
+  color: var(--pip-fg);
+  text-shadow: 0 0 10px var(--pip-fg);
   animation: blink 1s steps(1) infinite;
 }
 
@@ -123,15 +121,15 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border-top: 2px solid var(--color-border-default);
-  background: linear-gradient(0deg, rgba(102, 255, 51, 0.06), transparent);
+  border-top: 2px solid var(--pip-border);
+  background: linear-gradient(0deg, rgba(51, 255, 102, 0.06), transparent);
 }
 
 .prompt {
   display: flex;
   align-items: center;
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 10px var(--color-accent-glow-strong);
+  color: var(--pip-fg);
+  text-shadow: 0 0 10px var(--pip-fg);
 }
 
 .input {
@@ -139,27 +137,26 @@
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 14px;
-  color: var(--color-text-primary);
-  text-shadow: 0 0 6px rgba(102, 255, 51, 0.5);
-  caret-color: var(--color-accent-neon);
+  color: var(--pip-fg);
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.5);
+  caret-color: var(--pip-fg);
 }
 
 .input::placeholder {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   text-shadow: none;
 }
 
 .input:disabled {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
 }
 
 .caret {
   width: 9px;
   height: 18px;
-  background: var(--color-accent-neon);
-  box-shadow: 0 0 10px var(--color-accent-glow-strong);
+  background: var(--pip-fg);
   animation: blink 1.05s steps(1) infinite;
 }
 

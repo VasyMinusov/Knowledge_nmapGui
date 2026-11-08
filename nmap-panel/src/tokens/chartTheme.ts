@@ -17,7 +17,7 @@ export const pipChartColors = () => {
   const fgDim = cssVar('--pip-fg-dim', '#1a9944');
   const fgGhost = cssVar('--pip-fg-ghost', 'rgba(51, 255, 102, 0.35)');
   const warning = cssVar('--pip-warning', '#ffbb00');
-  const danger = cssVar('--pip-danger', '#ff4444');
+  const danger = cssVar('--pip-danger', 'var(--pip-danger)');
   return { fg, fgDim, fgGhost, warning, danger };
 };
 

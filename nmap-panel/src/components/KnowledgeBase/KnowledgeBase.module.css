@@ -21,7 +21,7 @@
 }
 
 .empty {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   padding: 16px 0;
   text-align: center;
 }

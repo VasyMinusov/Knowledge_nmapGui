@@ -16,23 +16,6 @@
   /* Лёгкое свечение текста — имитация фосфора (только text-shadow) */
   --pip-glow: 0 0 6px rgba(51, 255, 102, 0.55);
   --pip-glow-dim: 0 0 4px rgba(51, 255, 102, 0.35);
-
-  /* ---- Легаси-алиасы (миграция B7 удалит) ---- */
-  --color-bg-primary: var(--pip-bg);
-  --color-bg-secondary: var(--pip-bg);
-  --color-bg-tertiary: var(--pip-bg);
-  --color-bg-elevated: var(--pip-bg);
-  --color-accent-neon: var(--pip-fg);
-  --color-accent-dim: var(--pip-fg-ghost);
-  --color-accent-glow: var(--pip-fg);
-  --color-accent-glow-strong: var(--pip-fg);
-  --color-danger-base: var(--pip-danger);
-  --color-danger-glow: var(--pip-danger);
-  --color-text-primary: var(--pip-fg);
-  --color-text-secondary: var(--pip-fg-dim);
-  --color-text-muted: var(--pip-fg-dim);
-  --color-border-default: var(--pip-border);
-  --color-border-accent: var(--pip-border);
 }
 
 /* Янтарная тема (Pip-Boy amber) */

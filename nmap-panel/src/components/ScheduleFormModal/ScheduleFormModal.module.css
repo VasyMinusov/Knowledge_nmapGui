@@ -11,6 +11,6 @@
 }
 
 .hint {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }

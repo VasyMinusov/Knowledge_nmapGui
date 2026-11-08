@@ -5,8 +5,8 @@
 }
 
 .card {
-  background: var(--color-bg-elevated);
-  border: 3px ridge var(--color-border-default);
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
@@ -15,18 +15,18 @@
 }
 
 .card:hover {
-  border-color: var(--color-accent-neon);
+  border-color: var(--pip-fg);
 }
 
 .name {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: bold;
-  font-size: var(--font-size-md);
+  font-size: var(--pip-fs-md);
 }
 
 .details {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .actions {

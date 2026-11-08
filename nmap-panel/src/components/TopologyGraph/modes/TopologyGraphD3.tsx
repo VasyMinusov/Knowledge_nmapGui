@@ -34,19 +34,19 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
   const colors = useMemo(() => {
     const isGreen = theme === 'green';
     return {
-      accent: isGreen ? '#66ff33' : '#ffb800',
+      accent: isGreen ? '#33ff66' : '#ffbb00',
       accentGlow: isGreen ? 'rgba(102,255,51,0.8)' : 'rgba(255,184,0,0.8)',
       accentDim: isGreen ? 'rgba(102,255,51,0.2)' : 'rgba(255,184,0,0.2)',
-      text: isGreen ? '#ccff66' : '#ffdd66',
-      secondary: isGreen ? '#a8e633' : '#e6b800',
-      muted: isGreen ? '#77aa33' : '#a67c00',
-      danger: isGreen ? '#ff5555' : '#3399ff',
+      text: isGreen ? '#33ff66' : '#ffdd66',
+      secondary: isGreen ? '#1a9944' : '#e6b800',
+      muted: isGreen ? '#1a9944' : '#a67c00',
+      danger: isGreen ? '#ff4444' : '#3399ff',
       bgNode: isGreen ? '#0c1a0c' : '#1a140e',
       bgRouter: isGreen ? '#0f1f0f' : '#1f180f',
       link: isGreen ? '#215a21' : '#4a331d',
       linkPulse: isGreen ? '#9dff70' : '#ffd166',
-      nodeStroke: isGreen ? '#66ff33' : '#ffb800',
-      routerStroke: isGreen ? '#a8e633' : '#e6b800',
+      nodeStroke: isGreen ? '#33ff66' : '#ffbb00',
+      routerStroke: isGreen ? '#1a9944' : '#e6b800',
       grid: isGreen ? 'rgba(102,255,51,0.05)' : 'rgba(255,184,0,0.05)',
     };
   }, [theme]);
@@ -334,14 +334,14 @@ export const TopologyGraphD3: React.FC<Props> = ({ hosts, onNodeClick }) => {
       .attr('dominant-baseline', 'central')
       .attr('fill', d => d.group === 'router' ? colors.secondary : (d.status === 'up' ? colors.text : '#777'))
       .attr('font-size', d => d.group === 'router' ? '14px' : '12px')
-      .attr('font-family', 'var(--font-mono)')
+      .attr('font-family', "'Share Tech Mono', 'Courier New', monospace")
       .text(d => d.group === 'router' ? '\u25C8' : '\u25CF');
 
     nodeEnter.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', d => d.group === 'router' ? 38 : 34)
       .attr('fill', colors.text)
-      .attr('font-family', 'var(--font-mono)')
+      .attr('font-family', "'Share Tech Mono', 'Courier New', monospace")
       .attr('font-size', '9px')
       .text(d => d.label.length > 14 ? d.label.slice(0, 12) + '\u2026' : d.label);
 

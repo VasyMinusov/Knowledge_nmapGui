@@ -1,7 +1,7 @@
 /* src/components/AuditToolkit/AuditTaskPanel.module.css */
 .panel {
-  border: 2px solid var(--color-border-default);
-  background: var(--color-bg-secondary);
+  border: 2px solid var(--pip-border);
+  background: var(--pip-bg);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -16,16 +16,16 @@
 }
 
 .tool {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
   letter-spacing: 0.5px;
 }
 
 .target {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   word-break: break-all;
 }
 
@@ -37,30 +37,30 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .findings {
   max-height: 320px;
   overflow-y: auto;
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--pip-border);
 }
 
 .findings table {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .findings th {
   text-align: left;
   padding: 8px 12px;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-secondary);
-  border-bottom: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  color: var(--pip-fg-dim);
+  border-bottom: 2px solid var(--pip-border);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -68,30 +68,30 @@
 
 .findings td {
   padding: 6px 12px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
   vertical-align: top;
 }
 
 .findings tbody tr:hover {
-  background: var(--color-accent-dim);
+  background: var(--pip-fg-ghost);
 }
 
 .fTitle {
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
   white-space: nowrap;
 }
 
 .fDetail {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   word-break: break-word;
 }
 
 .command {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 11px;
-  color: var(--color-text-muted);
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  color: var(--pip-fg-dim);
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
   padding: 6px 10px;
   overflow-x: auto;
 }
@@ -110,9 +110,9 @@
   align-self: flex-start;
   background: transparent;
   border: none;
-  color: var(--color-text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  color: var(--pip-fg-dim);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
@@ -123,20 +123,21 @@
 }
 
 .outputToggle:hover {
-  color: var(--color-accent-neon);
+  color: var(--pip-fg);
 }
 
 .output {
   margin: 0;
   max-height: 340px;
   overflow: auto;
-  background: var(--color-bg-primary);
-  border: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
   padding: 10px;
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 12px;
   line-height: 1.45;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   white-space: pre-wrap;
   word-break: break-word;
 }
+

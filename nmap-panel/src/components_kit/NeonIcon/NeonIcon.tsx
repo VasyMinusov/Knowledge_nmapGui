@@ -5,7 +5,7 @@ export const NeonIcon: React.FC<NeonIconProps> = ({
   icon: Icon,
   size = 24,
   className,
-  color = 'var(--color-accent-neon)',
+  color = 'var(--pip-fg)',
   glowIntensity = 'medium',
 }) => {
   return (

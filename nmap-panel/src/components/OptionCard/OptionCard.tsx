@@ -14,7 +14,7 @@ export const OptionCard: React.FC<OptionCardProps> = ({ option }) => {
       <div className={styles.description}>{option.description}</div>
       {option.example && (
         <div className={styles.example}>
-          <span style={{ color: 'var(--color-text-muted)' }}>$ </span>
+          <span style={{ color: 'var(--pip-fg-dim)' }}>$ </span>
           {option.example}
         </div>
       )}

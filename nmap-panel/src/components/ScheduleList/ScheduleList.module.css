@@ -1,20 +1,20 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .table th {
   text-align: left;
-  color: var(--color-text-secondary);
-  border-bottom: 3px solid var(--color-border-default);
+  color: var(--pip-fg-dim);
+  border-bottom: 3px solid var(--pip-border);
   padding: 8px 12px;
 }
 
 .table td {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
 }
 
 .actions {
@@ -23,14 +23,14 @@
 }
 
 .empty {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   padding: 16px 0;
 }
 
 .active {
-  color: var(--color-accent-neon);
+  color: var(--pip-fg);
 }
 
 .inactive {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
 }

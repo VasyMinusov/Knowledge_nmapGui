@@ -11,10 +11,10 @@
 }
 
 .subnetTitle {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  border-bottom: 2px solid var(--color-border-default);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
+  border-bottom: 2px solid var(--pip-border);
   padding-bottom: 4px;
 }
 
@@ -31,12 +31,12 @@
   justify-content: center;
   width: 80px;
   height: 80px;
-  background: var(--color-bg-elevated);
-  border: 3px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 3px solid var(--pip-border);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-align: center;
   padding: 4px;
   position: relative;
@@ -44,17 +44,16 @@
 
 .hostTile:hover {
   transform: scale(1.05);
-  border-color: var(--color-accent-neon);
-  box-shadow: 0 0 20px var(--color-accent-glow);
+  border-color: var(--pip-fg);
 }
 
 .hostTile.up {
-  border-color: var(--color-accent-neon);
-  background: rgba(102, 255, 51, 0.15);
+  border-color: var(--pip-fg);
+  background: rgba(51, 255, 102, 0.15);
 }
 
 .hostTile.down {
-  border-color: var(--color-text-muted);
+  border-color: var(--pip-fg-dim);
   opacity: 0.6;
 }
 
@@ -66,7 +65,7 @@
 
 .hostname {
   font-size: 10px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -78,12 +77,11 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background: var(--color-accent-neon);
-  color: var(--color-bg-primary);
+  background: var(--pip-fg);
+  color: var(--pip-bg);
   font-size: 10px;
   font-weight: bold;
   padding: 0 6px;
   border-radius: 0;
-  border: 2px solid var(--color-bg-primary);
-  box-shadow: 0 0 8px var(--color-accent-neon);
+  border: 2px solid var(--pip-bg);
 }

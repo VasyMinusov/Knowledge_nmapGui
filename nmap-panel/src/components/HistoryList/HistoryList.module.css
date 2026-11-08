@@ -3,11 +3,11 @@
   /* Заменяем фиксированную ширину последней колонки на auto */
   grid-template-columns: 150px 120px 80px 100px 1fr auto;
   padding: 8px 12px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  border-bottom: 3px solid var(--color-border-default);
-  background: var(--color-bg-elevated);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
+  border-bottom: 3px solid var(--pip-border);
+  background: var(--pip-bg);
   flex-shrink: 0;
   align-items: center;
 }
@@ -19,13 +19,13 @@
   padding: 6px 12px;
   align-items: center;
   cursor: pointer;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
   transition: background 0.15s;
   min-height: 48px;
 }
 
 .row:hover {
-  background: var(--color-accent-dim);
+  background: var(--pip-fg-ghost);
 }
 
 .cell {
@@ -54,7 +54,7 @@
 }
 
 .empty {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   padding: 16px 0;
   text-align: center;
 }

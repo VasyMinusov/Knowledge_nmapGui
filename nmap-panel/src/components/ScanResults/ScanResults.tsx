@@ -70,7 +70,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
   if (!status) {
     return (
       <IndustrialCard title="РЕЗУЛЬТАТЫ">
-        <p style={{ color: 'var(--color-text-muted)' }}>Результатов сканирования пока нет.</p>
+        <p style={{ color: 'var(--pip-fg-dim)' }}>Результатов сканирования пока нет.</p>
       </IndustrialCard>
     );
   }
@@ -135,7 +135,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ status, loading }) => 
                 </div>
                 <div className={styles.gridContainer}>
                   {filteredHosts.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-muted)' }}>Нет хостов, соответствующих фильтрам</p>
+                    <p style={{ color: 'var(--pip-fg-dim)' }}>Нет хостов, соответствующих фильтрам</p>
                   ) : (
                     <HostGrid hosts={filteredHosts} onHostClick={handleHostClick} />
                   )}

@@ -1,10 +1,6 @@
 :root {
   /* Pip-Boy: никаких box-shadow — только плоскость и рамки.
      Свечение допустимо лишь для текста (фосфор). */
-  --shadow-neon-sm: none;
-  --shadow-neon-md: none;
-  --shadow-neon-lg: none;
-  --shadow-danger-sm: none;
   --text-glow: var(--pip-glow);
   --text-glow-dim: var(--pip-glow-dim);
 }

@@ -3,8 +3,8 @@
   flex-wrap: wrap;
   gap: 20px 32px;
   padding: 12px 16px;
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
   margin-bottom: 16px;
 }
 
@@ -15,18 +15,18 @@
 }
 
 .statLabel {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .statValue {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-lg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-lg);
   font-weight: bold;
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
 }
 
 .controls {
@@ -46,22 +46,22 @@
 .tableWrapper {
   max-height: 500px;
   overflow-y: auto;
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--pip-border);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .table th {
   text-align: left;
   padding: 8px 12px;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-secondary);
-  border-bottom: 2px solid var(--color-border-default);
+  background: var(--pip-bg);
+  color: var(--pip-fg-dim);
+  border-bottom: 2px solid var(--pip-border);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -69,23 +69,23 @@
 
 .table td {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
   vertical-align: top;
 }
 
 .table tbody tr:hover {
-  background: var(--color-accent-dim);
+  background: var(--pip-fg-ghost);
 }
 
 .cveLink {
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 8px var(--color-accent-glow);
+  color: var(--pip-fg);
+  text-shadow: 0 0 8px var(--pip-fg);
   text-decoration: none;
-  border-bottom: 1px dotted var(--color-accent-neon);
+  border-bottom: 1px dotted var(--pip-fg);
 }
 
 .cveLink:hover {
-  text-shadow: 0 0 16px var(--color-accent-glow-strong);
+  text-shadow: 0 0 16px var(--pip-fg);
 }
 
 .hostInfo {
@@ -99,8 +99,8 @@
 }
 
 .hostname {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .descCell {
@@ -113,12 +113,12 @@
 }
 
 .scanId {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }
 
 .scanTime {
   display: block;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }

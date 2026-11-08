@@ -3,8 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .row {
@@ -13,34 +13,34 @@
 }
 
 .label {
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   min-width: 100px;
 }
 
 .tableWrapper {
   overflow-x: auto;
   margin-top: 8px;
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--pip-border);
 }
 
 .portTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
+  font-size: var(--pip-fs-sm);
   table-layout: fixed;
 }
 
 .portTable th {
   text-align: left;
-  color: var(--color-text-secondary);
-  border-bottom: 2px solid var(--color-border-default);
+  color: var(--pip-fg-dim);
+  border-bottom: 2px solid var(--pip-border);
   padding: 6px 8px;
-  background: var(--color-bg-elevated);
+  background: var(--pip-bg);
 }
 
 .portTable td {
   padding: 6px 8px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -59,6 +59,6 @@
 .portTable td:nth-child(5) { width: 30%; }  /* Version */
 
 .openState {
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 8px var(--color-accent-glow);
+  color: var(--pip-fg);
+  text-shadow: 0 0 8px var(--pip-fg);
 }

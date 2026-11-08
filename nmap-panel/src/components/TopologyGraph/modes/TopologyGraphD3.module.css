@@ -3,8 +3,8 @@
 .graphContainer {
   width: 100%;
   height: 700px;  /* увеличено с 500px для лучшей видимости */
-  border: 2px solid var(--color-border-default);
-  background: var(--color-bg-primary);
+  border: 2px solid var(--pip-border);
+  background: var(--pip-bg);
   overflow: hidden;
   position: relative;
 }
@@ -19,9 +19,9 @@
   z-index: 10;
 }
 .controlBtn {
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-border-default);
-  color: var(--color-text-secondary);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
+  color: var(--pip-fg-dim);
   width: 32px;
   height: 32px;
   display: flex;
@@ -31,8 +31,8 @@
   transition: border-color 0.2s, color 0.2s;
 }
 .controlBtn:hover {
-  border-color: var(--color-accent-neon);
-  color: var(--color-accent-neon);
+  border-color: var(--pip-fg);
+  color: var(--pip-fg);
 }
 .legend {
   position: absolute;
@@ -41,12 +41,12 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
   background: rgba(0,0,0,0.6);
   padding: 6px 10px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--pip-border);
 }
 .legendItem {
   display: flex;
@@ -56,14 +56,14 @@
 .legendSwatch {
   width: 12px;
   height: 12px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--pip-border);
 }
 .legendRouter {
-  background: var(--color-bg-router);
-  border-color: var(--color-accent-neon);
+  background: var(--pip-bg);
+  border-color: var(--pip-fg);
 }
 .legendUp {
-  background: var(--color-accent-neon);
+  background: var(--pip-fg);
 }
 .legendDown {
   background: #555;
@@ -72,10 +72,10 @@
   position: absolute;
   bottom: 12px;
   left: 12px;
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
   background: rgba(0,0,0,0.6);
   padding: 4px 10px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--pip-border);
 }

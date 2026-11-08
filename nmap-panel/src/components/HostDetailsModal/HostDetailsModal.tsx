@@ -43,7 +43,7 @@ export const HostDetailsModal: React.FC<HostDetailsModalProps> = ({ open, host, 
         <div>
           <GlitchText text={`Open Ports (${openPorts.length})`} />
           {openPorts.length === 0 ? (
-            <p style={{ color: 'var(--color-text-muted)' }}>No open ports</p>
+            <p style={{ color: 'var(--pip-fg-dim)' }}>No open ports</p>
           ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.portTable}>

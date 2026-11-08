@@ -15,33 +15,32 @@
   gap: 8px;
   align-items: center;
   padding: 8px 0 16px;
-  border-bottom: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--pip-border);
   margin-bottom: 16px;
 }
 
 .exampleLabel {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-right: 8px;
 }
 
 .exampleBtn {
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-border-default);
-  color: var(--color-text-primary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  background: var(--pip-bg);
+  border: 2px solid var(--pip-border);
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   padding: 4px 10px;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 
 .exampleBtn:hover {
-  border-color: var(--color-accent-neon);
-  box-shadow: 0 0 10px var(--color-accent-glow);
+  border-color: var(--pip-fg);
 }
 
 .result {
@@ -53,17 +52,17 @@
   flex-direction: column;
   gap: 4px;
   padding: 8px 0 16px;
-  border-bottom: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--pip-border);
   margin-bottom: 16px;
 }
 
 .commandDisplay {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  background: var(--color-bg-elevated);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
+  background: var(--pip-bg);
   padding: 4px 12px;
-  border-left: 3px solid var(--color-accent-neon);
+  border-left: 3px solid var(--pip-fg);
 }
 
 .flagsGrid {
@@ -76,8 +75,8 @@
 }
 
 .flagCard {
-  background: var(--color-bg-elevated);
-  border: 3px ridge var(--color-border-default);
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -89,51 +88,51 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--pip-border);
   padding-bottom: 6px;
 }
 
 .flagCode {
-  font-family: var(--font-mono);
+  font-family: var(--pip-font);
   font-weight: bold;
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 8px var(--color-accent-glow);
-  font-size: var(--font-size-md);
+  color: var(--pip-fg);
+  text-shadow: 0 0 8px var(--pip-fg);
+  font-size: var(--pip-fs-md);
 }
 
 .flagArg {
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  color: var(--pip-fg-dim);
+  font-size: var(--pip-fs-sm);
 }
 
 .flagBody {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: var(--font-size-sm);
+  font-size: var(--pip-fs-sm);
 }
 
 .flagName {
   font-weight: bold;
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
 }
 
 .flagDesc {
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 .flagUseCase, .flagExample {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  color: var(--pip-fg-dim);
+  font-size: var(--pip-fs-sm);
 }
 
 .label {
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 6px var(--color-accent-glow);
+  color: var(--pip-fg);
+  text-shadow: 0 0 6px var(--pip-fg);
 }
 
 .flagUnknown {
-  color: var(--color-danger-base);
+  color: var(--pip-danger);
   font-style: italic;
 }

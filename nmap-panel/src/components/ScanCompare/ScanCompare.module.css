@@ -19,17 +19,17 @@
 }
 
 .summary {
-  font-size: var(--font-size-lg);
+  font-size: var(--pip-fs-lg);
   padding: 12px 0;
-  border-bottom: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--pip-border);
 }
 
 .sectionTitle {
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  color: var(--pip-fg-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: var(--font-size-md);
+  font-size: var(--pip-fs-md);
   margin-bottom: 12px;
 }
 
@@ -43,11 +43,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--color-bg-elevated);
+  background: var(--pip-bg);
   padding: 6px 12px;
-  border: 2px solid var(--color-border-default);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  border: 2px solid var(--pip-border);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .ip {
@@ -55,13 +55,13 @@
 }
 
 .hostname {
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
 .modifiedCard {
-  background: var(--color-bg-elevated);
+  background: var(--pip-bg);
   padding: 12px;
-  border: 2px solid var(--color-accent-dim);
+  border: 2px solid var(--pip-fg-ghost);
   margin-bottom: 8px;
 }
 
@@ -73,8 +73,8 @@
 }
 
 .changesSummary {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  color: var(--pip-fg-dim);
+  font-size: var(--pip-fs-sm);
 }
 
 .portChanges {
@@ -85,18 +85,18 @@
 }
 
 .portAdded {
-  background: rgba(102, 255, 51, 0.2);
-  border: 1px solid var(--color-accent-neon);
+  background: rgba(51, 255, 102, 0.2);
+  border: 1px solid var(--pip-fg);
   padding: 2px 8px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
 }
 
 .portRemoved {
   background: rgba(255, 85, 85, 0.2);
-  border: 1px solid var(--color-danger-base);
+  border: 1px solid var(--pip-danger);
   padding: 2px 8px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   text-decoration: line-through;
 }
