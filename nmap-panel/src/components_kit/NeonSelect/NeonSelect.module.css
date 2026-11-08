@@ -2,96 +2,86 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
 .label {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
+/* Триггер — как NeonInput: нижняя линия + ▾ */
 .trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  background: var(--color-bg-elevated);
-  border: 3px solid var(--color-border-default);
-  color: var(--color-text-primary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-md);
-  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--pip-border-dim);
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-md);
+  padding: 6px 2px;
   cursor: pointer;
   text-align: left;
 }
 
 .trigger.open {
-  border-color: var(--color-accent-neon);
-  box-shadow: var(--shadow-neon-sm);
+  border-bottom-color: var(--pip-border);
 }
 
 .trigger.disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .value {
-  color: var(--color-text-primary);
-  text-shadow: 0 0 6px var(--color-accent-glow);
+  color: var(--pip-fg);
+  text-shadow: var(--pip-glow-dim);
 }
 
 .placeholder {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-ghost);
 }
 
 .chevron {
-  display: flex;
-  color: var(--color-accent-neon);
-  filter: drop-shadow(0 0 6px var(--color-accent-neon));
+  color: var(--pip-fg-dim);
 }
 
+/* Список — 1px solid рамка, пункт при hover инвертируется */
 .menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 2px);
   left: 0;
   right: 0;
   z-index: 100;
-  background: var(--color-bg-secondary);
-  border: 3px solid var(--color-accent-neon);
-  box-shadow: var(--shadow-neon-md);
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
   list-style: none;
   margin: 0;
-  padding: 4px;
+  padding: 0;
   max-height: 220px;
   overflow-y: auto;
 }
 
 .option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-md);
-  color: var(--color-text-primary);
+  padding: 6px 10px;
+  font-size: var(--pip-fs-md);
+  color: var(--pip-fg);
   cursor: pointer;
 }
 
 .option:hover {
-  background: var(--color-accent-dim);
+  background: var(--pip-invert-bg);
+  color: var(--pip-invert-fg);
 }
 
 .option.selected {
-  color: var(--color-accent-neon);
-  text-shadow: 0 0 8px var(--color-accent-neon);
-}
-
-.checkIcon {
-  color: var(--color-accent-neon);
-  filter: drop-shadow(0 0 6px var(--color-accent-neon));
+  color: var(--pip-fg);
+  text-shadow: var(--pip-glow);
 }

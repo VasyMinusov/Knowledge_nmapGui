@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
 import type { NeonTooltipProps } from './NeonTooltip.types';
 import styles from './NeonTooltip.module.css';
 
@@ -8,18 +7,16 @@ export const NeonTooltip: React.FC<NeonTooltipProps> = ({
   content,
   children,
   position = 'top',
-  portal = true, // новый проп, по умолчанию true
+  portal = true,
 }) => {
   const [visible, setVisible] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
-  const tooltipRef = useRef<HTMLSpanElement>(null);
   const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
 
-  // Функция вычисления координат для портала
   const calculatePosition = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const offset = 8; // отступ от края
+    const offset = 6;
     let x = 0, y = 0;
 
     switch (position) {
@@ -43,7 +40,6 @@ export const NeonTooltip: React.FC<NeonTooltipProps> = ({
     setCoords({ x, y });
   };
 
-  // Обновляем позицию при открытии, скролле, ресайзе
   useEffect(() => {
     if (!portal || !visible) return;
     calculatePosition();
@@ -56,7 +52,6 @@ export const NeonTooltip: React.FC<NeonTooltipProps> = ({
     };
   }, [visible, position, portal]);
 
-  // Если портал отключён — используем старый абсолютный рендеринг
   if (!portal) {
     return (
       <span
@@ -66,36 +61,25 @@ export const NeonTooltip: React.FC<NeonTooltipProps> = ({
         onMouseLeave={() => setVisible(false)}
       >
         {children}
-        <AnimatePresence>
-          {visible && (
-            <motion.span
-              role="tooltip"
-              className={`${styles.tooltip} ${styles[position]}`}
-              initial={{ opacity: 0, ...offsetMap[position] }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              exit={{ opacity: 0, ...offsetMap[position] }}
-              transition={{ duration: 0.12 }}
-            >
-              {content}
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {visible && (
+          <span role="tooltip" className={`${styles.tooltip} ${styles[position]}`}>
+            {content}
+          </span>
+        )}
       </span>
     );
   }
 
-  // Портал-версия
   return (
     <span
       className={styles.wrapper}
       ref={triggerRef}
-      onMouseEnter={() => { setVisible(true); }}
+      onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
       {children}
       {visible && coords && createPortal(
-        <motion.span
-          ref={tooltipRef}
+        <span
           role="tooltip"
           className={styles.tooltipPortal}
           style={{
@@ -113,23 +97,11 @@ export const NeonTooltip: React.FC<NeonTooltipProps> = ({
             })`,
             zIndex: 9999,
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.12 }}
         >
           {content}
-        </motion.span>,
+        </span>,
         document.body
       )}
     </span>
   );
-};
-
-// Вспомогательный объект для анимаций без портала (не меняется)
-const offsetMap = {
-  top: { y: 4 },
-  bottom: { y: -4 },
-  left: { x: 4 },
-  right: { x: -4 },
 };

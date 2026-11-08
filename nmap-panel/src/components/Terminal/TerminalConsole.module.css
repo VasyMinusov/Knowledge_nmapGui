@@ -167,3 +167,14 @@
   .barActions { flex-wrap: wrap; }
   .view { max-height: 360px; }
 }
+
+
+/* Мигание индикатора выполнения (1s, как курсор терминала) */
+.blink {
+  animation: pip-blink 1s steps(1, end) infinite;
+}
+
+@keyframes pip-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}

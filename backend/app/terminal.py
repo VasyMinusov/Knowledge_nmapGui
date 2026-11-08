@@ -59,7 +59,9 @@ ALLOWED_BINARIES = {
     "hydra", "medusa", "patator", "ncrack", "crowbar",
     "john", "hashcat", "hash-identifier", "hashid", "cewl",
     # ── эксплойты / полезные нагрузки ──
-    "searchsploit", "msfvenom",
+    "searchsploit", "msfvenom", "msfconsole", "msfrpcd",
+    # ── генераторы словарей ──
+    "crunch",
     # ── сетевые утилиты ──
     "ping", "ping6", "traceroute", "tracepath", "mtr", "arping",
     "nc", "ncat", "socat", "hping3", "tcptraceroute", "fping",
@@ -254,3 +256,4 @@ def close_session(session_id: str) -> bool:
         _kill(session_id, "kill")
     _sessions.pop(session_id, None)
     return True
+

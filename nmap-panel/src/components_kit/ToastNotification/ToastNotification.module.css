@@ -6,61 +6,40 @@
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   max-width: 360px;
   width: 100%;
 }
 
-/* Каждый тост */
+/* Каждый тост: 1px рамка, slide-in 120ms */
 .toast {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border-default);
-  box-shadow: var(--shadow-neon-sm), inset 0 0 8px var(--color-accent-glow);
-  border-radius: 0; /* индустриальный стиль – без скруглений */
-  position: relative;
-  overflow: hidden;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
   min-width: 240px;
+  animation: pip-toast-in 120ms steps(3, end);
 }
 
-/* Варианты */
-.toast.accent {
-  border-color: var(--color-accent-neon);
-  box-shadow: 0 0 20px var(--color-accent-glow), inset 0 0 8px var(--color-accent-glow);
-}
-.toast.danger {
-  border-color: var(--color-danger-base);
-  box-shadow: 0 0 20px var(--color-danger-glow), inset 0 0 8px var(--color-danger-glow);
-}
-.toast.warning {
-  border-color: #ffb800;
-  box-shadow: 0 0 20px rgba(255, 184, 0, 0.6), inset 0 0 8px rgba(255, 184, 0, 0.3);
+@keyframes pip-toast-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-/* Иконка */
+.toast.accent { border-color: var(--pip-border); }
+.toast.danger { border-color: var(--pip-danger); }
+.toast.warning { border-color: var(--pip-warning); }
+
 .icon {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: var(--color-accent-neon);
-  filter: drop-shadow(0 0 6px var(--color-accent-neon));
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
 }
-.danger .icon {
-  color: var(--color-danger-base);
-  filter: drop-shadow(0 0 6px var(--color-danger-glow));
-}
-.warning .icon {
-  color: #ffb800;
-  filter: drop-shadow(0 0 6px rgba(255, 184, 0, 0.6));
-}
+.danger .icon { color: var(--pip-danger); }
+.warning .icon { color: var(--pip-warning); }
 
-/* Текстовый блок */
 .text {
   flex: 1;
   display: flex;
@@ -68,80 +47,34 @@
   gap: 2px;
 }
 
-/* Заголовок */
 .title {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-md);
-  font-weight: bold;
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-md);
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-text-primary);
-  text-shadow: 0 0 8px var(--color-accent-glow);
+  color: var(--pip-fg);
+  text-shadow: var(--pip-glow-dim);
 }
-.danger .title {
-  color: var(--color-danger-base);
-  text-shadow: 0 0 8px var(--color-danger-glow);
-}
-.warning .title {
-  color: #ffb800;
-  text-shadow: 0 0 8px rgba(255, 184, 0, 0.6);
-}
+.danger .title { color: var(--pip-danger); }
+.warning .title { color: var(--pip-warning); }
 
-/* Описание */
 .desc {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
   text-shadow: none;
 }
 
-/* Кнопка закрытия */
 .close {
   flex-shrink: 0;
   background: transparent;
-  border: 2px solid var(--color-border-default);
-  color: var(--color-text-muted);
+  border: none;
+  color: var(--pip-fg-dim);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
   padding: 0;
-  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
-  background: var(--color-bg-elevated);
 }
 .close:hover {
-  border-color: var(--color-accent-neon);
-  color: var(--color-accent-neon);
-  box-shadow: 0 0 12px var(--color-accent-neon);
-}
-.danger .close:hover {
-  border-color: var(--color-danger-base);
-  color: var(--color-danger-base);
-  box-shadow: 0 0 12px var(--color-danger-glow);
-}
-.warning .close:hover {
-  border-color: #ffb800;
-  color: #ffb800;
-  box-shadow: 0 0 12px rgba(255, 184, 0, 0.6);
-}
-
-/* Таймер-полоска (исчезающая) */
-.timer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: var(--color-accent-neon);
-  transform-origin: left;
-  box-shadow: 0 0 8px var(--color-accent-neon);
-}
-.danger .timer {
-  background: var(--color-danger-base);
-  box-shadow: 0 0 8px var(--color-danger-glow);
-}
-.warning .timer {
-  background: #ffb800;
-  box-shadow: 0 0 8px rgba(255, 184, 0, 0.6);
+  color: var(--pip-fg);
 }

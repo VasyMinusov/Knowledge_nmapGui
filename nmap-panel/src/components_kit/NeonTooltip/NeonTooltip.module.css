@@ -6,48 +6,44 @@
 .tooltip {
   position: absolute;
   z-index: 200;
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-accent-neon);
-  color: var(--color-accent-neon);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  padding: 4px 8px;
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  padding: 3px 8px;
   white-space: nowrap;
-  box-shadow: var(--shadow-neon-sm);
   pointer-events: none;
 }
 
 .top {
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
 }
 .bottom {
-  top: calc(100% + 8px);
+  top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
 }
 .left {
-  right: calc(100% + 8px);
+  right: calc(100% + 6px);
   top: 50%;
   transform: translateY(-50%);
 }
 .right {
-  left: calc(100% + 8px);
+  left: calc(100% + 6px);
   top: 50%;
   transform: translateY(-50%);
 }
 
 .tooltipPortal {
-  /* Наследуем все базовые стили от .tooltip, но переопределяем position и transform */
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-accent-neon);
-  color: var(--color-accent-neon);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  padding: 4px 8px;
+  background: var(--pip-bg);
+  border: 1px solid var(--pip-border);
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  padding: 3px 8px;
   white-space: nowrap;
-  box-shadow: var(--shadow-neon-sm);
   pointer-events: none;
-  /* Дополнительно можно задать max-width, если нужно */
 }

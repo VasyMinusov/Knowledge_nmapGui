@@ -1,8 +1,6 @@
 // src/components/Terminal/Terminal.tsx
 import React, { useCallback, useEffect, useState } from 'react';
-import { motion } from 'motion/react';
 import { IndustrialCard, GlitchText } from '@/components_kit';
-import { transitions } from '@/tokens/motion';
 import { VscTerminalPowershell, VscListSelection } from 'react-icons/vsc';
 import { terminalApi } from '@/api/nmapApi';
 import type { TerminalTool } from '@/api/nmapApi';
@@ -76,15 +74,8 @@ export const Terminal: React.FC<TerminalProps> = ({ initialTarget, title = 'ВС
                 className={`${styles.toggleBtn} ${active ? styles.toggleActive : ''}`}
                 onClick={() => setMode(m.id)}
               >
-                {active && (
-                  <motion.span
-                    layoutId="termModePill"
-                    className={styles.pill}
-                    transition={transitions.mechanical}
-                  />
-                )}
                 <span className={styles.toggleLabel}>
-                  {m.icon} {m.label}
+                  {m.icon} {active ? `[ ${m.label} ]` : `  ${m.label}  `}
                 </span>
               </button>
             );
@@ -124,3 +115,4 @@ export const Terminal: React.FC<TerminalProps> = ({ initialTarget, title = 'ВС
     </div>
   );
 };
+

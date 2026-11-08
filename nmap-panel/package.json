@@ -36,7 +36,6 @@
     "cytoscape": "^3.34.0",
     "cytoscape-dagre": "^4.0.0",
     "d3": "^7.9.0",
-    "motion": "^13.0.0",
     "react-chartjs-2": "^5.3.1",
     "react-cytoscapejs": "^2.0.0",
     "react-icons": "^5.7.0",

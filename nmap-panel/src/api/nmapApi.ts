@@ -214,6 +214,74 @@ export const auditApi = {
     ),
   deleteTask: (taskId: string) =>
     axios.delete(`${AUDIT_BASE}/task/${taskId}`),
+  // A4.3 — словари по категориям
+  getWordlists: () =>
+    axios.get<{ categories: Record<AuditWordlistKind, AuditWordlistEntry[]> }>(`${AUDIT_BASE}/wordlists`),
+  // A6 — рекомендуемые следующие шаги и сводная таблица находок
+  getSuggestions: (scanId: string) =>
+    axios.get<{ suggestions: AuditSuggestion[] }>(
+      `${AUDIT_BASE}/suggestions?scan_id=${encodeURIComponent(scanId)}`,
+    ),
+  getFindings: (scanId: string) =>
+    axios.get<AuditFindingsResponse>(
+      `${AUDIT_BASE}/findings?scan_id=${encodeURIComponent(scanId)}`,
+    ),
+};
+
+// A4.3 — словари
+export type AuditWordlistKind = 'directories' | 'usernames' | 'passwords' | 'params' | 'subdomains' | 'generated';
+
+export interface AuditWordlistEntry {
+  path: string;
+  name: string;
+  size: number;
+}
+
+// A6 — рекомендации следующих шагов
+export interface AuditSuggestion {
+  tool_id: string;
+  name: string;
+  reason: string;
+  target: string;
+  options: Record<string, unknown>;
+  available: boolean;
+  category_label: string;
+  category_order: number;
+}
+
+// A6 — сводная таблица находок
+export interface AuditFindingRow extends AuditFinding {
+  task_id: string;
+  target: string;
+}
+
+export interface AuditFindingsResponse {
+  findings: AuditFindingRow[];
+  by_severity: Record<string, number>;
+  tasks_total: number;
+}
+
+// A3.3 — генерация payload через msfvenom
+export interface PayloadGenerateRequest {
+  payload: string;
+  lhost: string;
+  lport: number;
+  format: string;
+}
+
+export interface PayloadGenerateResponse {
+  name: string;
+  size: number;
+  payload: string;
+  format: string;
+  command: string;
+  download_url: string;
+}
+
+export const payloadsApi = {
+  generate: (data: PayloadGenerateRequest) =>
+    axios.post<PayloadGenerateResponse>(`${API_ROOT}/payloads/generate`, data),
+  downloadUrl: (name: string) => `${API_ROOT}/payloads/download/${encodeURIComponent(name)}`,
 };
 
 // --- Типы для встроенного терминала ---

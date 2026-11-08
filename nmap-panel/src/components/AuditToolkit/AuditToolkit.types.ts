@@ -1,5 +1,5 @@
 import type { HostInfo } from '@/api/nmapApi';
-import type { AuditTool, AuditTaskStatus } from '@/api/nmapApi';
+import type { AuditTool, AuditTaskStatus, AuditWordlistEntry, AuditWordlistKind } from '@/api/nmapApi';
 
 export interface AuditToolkitProps {
   scanId: string;
@@ -7,10 +7,13 @@ export interface AuditToolkitProps {
   targets: string;
 }
 
+export type AuditWordlists = Partial<Record<AuditWordlistKind, AuditWordlistEntry[]>>;
+
 export interface AuditToolCardProps {
   tool: AuditTool;
   disabled: boolean;
   running: boolean;
+  wordlists?: AuditWordlists;
   onRun: (toolId: string, options: Record<string, unknown>) => void;
 }
 
@@ -20,3 +23,4 @@ export interface AuditTaskPanelProps {
   onCancel: (taskId: string) => void;
   onRemove: (taskId: string) => void;
 }
+

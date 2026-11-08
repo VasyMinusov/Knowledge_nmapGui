@@ -60,6 +60,80 @@ def default_wordlist() -> str:
     return _BUNDLED_WORDLIST
 
 
+# ── Каталог словарей (A4.3) ──────────────────────────────────────────────────
+# Сгенерированные cewl/crunch словари лежат здесь и подтягиваются в API/UI (A4.5).
+GENERATED_WORDLISTS_DIR = os.path.join(AUDIT_DIR, "wordlists")
+os.makedirs(GENERATED_WORDLISTS_DIR, exist_ok=True)
+
+# Категории словарей: (шаблоны каталогов, фильтр по имени файла или None).
+_WORDLIST_SOURCES = {
+    "directories": (
+        [
+            "/usr/share/seclists/Discovery/Web-Content",
+            "/usr/share/wordlists/dirb",
+            "/usr/share/wordlists/dirbuster",
+        ],
+        None,
+    ),
+    "usernames": (["/usr/share/seclists/Usernames"], None),
+    "passwords": (
+        ["/usr/share/seclists/Passwords", "/usr/share/wordlists"],
+        re.compile(r"(?i)(rockyou|password|passw|credential|john)"),
+    ),
+    "params": (
+        ["/usr/share/seclists/Discovery/Web-Content"],
+        re.compile(r"(?i)(param|burp)"),
+    ),
+    "subdomains": (["/usr/share/seclists/Discovery/DNS"], None),
+}
+
+_WORDLIST_CACHE_TTL = 3600  # сек — каталог сканируется при первом обращении (A4.3)
+_wordlists_cache: Dict[str, object] = {"ts": 0.0, "data": None}
+
+
+def list_wordlists() -> Dict[str, List[dict]]:
+    """Словари по категориям: directories/usernames/passwords/params/subdomains
+    + generated (созданные cewl/crunch). Результат кэшируется на 1 час."""
+    import time as _time
+
+    now = _time.time()
+    if _wordlists_cache["data"] is not None and now - float(_wordlists_cache["ts"]) < _WORDLIST_CACHE_TTL:
+        return _wordlists_cache["data"]  # type: ignore[return-value]
+
+    result: Dict[str, List[dict]] = {}
+    for category, (dirs, name_re) in _WORDLIST_SOURCES.items():
+        entries: List[dict] = []
+        for base in dirs:
+            if not os.path.isdir(base):
+                continue
+            for fname in sorted(os.listdir(base)):
+                if not fname.endswith((".txt", ".lst")):
+                    continue
+                if name_re and not name_re.search(fname):
+                    continue
+                fpath = os.path.join(base, fname)
+                try:
+                    size = os.path.getsize(fpath)
+                except OSError:
+                    continue
+                entries.append({"path": fpath, "name": fname, "size": size})
+                if len(entries) >= 200:  # не раздуваем ответ
+                    break
+        result[category] = entries
+
+    generated: List[dict] = []
+    if os.path.isdir(GENERATED_WORDLISTS_DIR):
+        for fname in sorted(os.listdir(GENERATED_WORDLISTS_DIR)):
+            fpath = os.path.join(GENERATED_WORDLISTS_DIR, fname)
+            if os.path.isfile(fpath):
+                generated.append({"path": fpath, "name": fname, "size": os.path.getsize(fpath)})
+    result["generated"] = generated
+
+    _wordlists_cache["ts"] = now
+    _wordlists_cache["data"] = result
+    return result
+
+
 def normalize_target(raw: str, kind: str) -> str:
     """Приводит цель к каноничному виду и проверяет её. Бросает ValueError."""
     target = (raw or "").strip()
@@ -381,6 +455,29 @@ def parse_tlsx(out: str, err: str) -> List[Finding]:
         sev = "medium" if weak else "info"
         findings.append(_mk(clean.split()[0], clean.partition(" ")[2] or clean, sev))
     return findings or [_mk("Данных TLS нет", "", "info")]
+
+
+def parse_msf_generic(out: str, err: str) -> List[Finding]:
+    """Парсер вывода msfconsole -x: находки по характерным строкам модулей."""
+    findings: List[Finding] = []
+    text = re.sub(r"\x1b\[[0-9;]*m", "", out or "")
+    for line in text.splitlines():
+        clean = line.strip()
+        if not clean:
+            continue
+        if re.search(r"The target\b.*vulnerable", clean, re.I):
+            findings.append(_mk("Цель уязвима (MSF)", clean, "high"))
+        elif re.search(r"session .* opened", clean, re.I):
+            findings.append(_mk("Сессия открыта (MSF)", clean, "critical"))
+        elif re.search(r"Exploit completed", clean, re.I):
+            findings.append(_mk("Эксплойт отработал", clean, "medium"))
+        elif re.search(r"appears to be running|is running ", clean, re.I):
+            findings.append(_mk("Сервис определён (MSF)", clean, "info"))
+        elif re.search(r"successfully authenticated|Login Successful", clean, re.I):
+            findings.append(_mk("Успешный вход (MSF)", clean, "high"))
+        elif clean.startswith("[+]") or clean.startswith("[*]") and "vulnerable" in clean.lower():
+            findings.append(_mk("MSF", clean[3:].strip(), "low"))
+    return findings or [_mk("Модуль отработал без находок", "", "info")]
 
 
 # ── Универсальные парсеры (A2.3) ─────────────────────────────────────────────
@@ -737,7 +834,8 @@ _reg(Tool(
     description="Сканер XSS: параметры, DOM, обход фильтров, PoC.",
     target_kind="url", timeout=600, install_hint="go install github.com/hahwul/dalfox/v2@latest",
     build_args=lambda t, o: ["dalfox", "url", t, "--silence", "--no-color", "--skip-bav"]
-    + (["-b", o["blind"]] if o.get("blind") else []),
+    + (["-b", o["blind"]] if o.get("blind") else [])
+    + (["--waf-evasion"] if o.get("waf_bypass") else []),
     parse=parse_dalfox,
 ))
 _reg(Tool(
@@ -773,12 +871,21 @@ def _opt_token(o: dict, key: str, default: str, pattern: re.Pattern = _OPT_TOKEN
     return val if val and pattern.match(val) else default
 
 
-def _opt_wordlist(o: dict, key: str = "wordlist") -> str:
-    # Словарь — либо один из известных путей, либо встроенный default.
-    val = str(o.get(key, "") or "").strip()
-    if val and os.path.isfile(val) and (val.startswith("/usr/share/") or val.startswith("/app/")):
+def _allowed_wordlist_path(val: str) -> str:
+    """Путь к словарю: /usr/share/*, /app/* или audit_runs/* (сгенерированные)."""
+    val = (val or "").strip()
+    if not val or not os.path.isfile(val):
+        return ""
+    norm = os.path.normpath(val)
+    if norm.startswith("/usr/share/") or norm.startswith("/app/") \
+            or norm.startswith(os.path.normpath(AUDIT_DIR) + os.sep):
         return val
-    return default_wordlist()
+    return ""
+
+
+def _opt_wordlist(o: dict, key: str = "wordlist") -> str:
+    # Словарь — либо один из разрешённых путей, либо встроенный default.
+    return _allowed_wordlist_path(str(o.get(key, "") or "")) or default_wordlist()
 
 
 # ── Фаза 1: разведка (OSINT) ─────────────────────────────────────────────────
@@ -1081,6 +1188,112 @@ _reg(Tool(
     parse=make_generic_parser(re.compile(r"(?i)(exploit|shellcode|\.(py|rb|c|pl|txt|php)\s*\|)"), "Эксплойтов не найдено"),
 ))
 
+# ── Фаза 4: эксплуатация (Metasploit, профиль сборки max) ───────────────────
+# Запуск модулей: msfconsole -q -n -x "use <module>; set …; run; exit".
+# Панель сконструирована для работы без БД Metasploit (db_* недоступны,
+# но scanner/auxiliary-модули работают).
+_MSF_MODULE_RE = re.compile(r"^[a-z0-9_/]+$")
+
+
+def _msf_args(module: str, sets: List[str], timeout_note: str = "") -> List[str]:
+    script = "; ".join([f"use {module}", *sets, "run", "exit"])
+    return ["msfconsole", "-q", "-n", "-x", script]
+
+
+def _msf_scanner(module: str, extra_sets: Optional[List[str]] = None):
+    """build_args для scanner-модулей: set RHOSTS <цель> + опциональные set."""
+    def build(t: str, o: dict) -> List[str]:
+        sets = [f"set RHOSTS {t}", "set THREADS " + str(_opt_int(o, "threads", 10, 1, 50))]
+        rport = _opt_int(o, "port", 0, 0, 65535)
+        if rport:
+            sets.append(f"set RPORT {rport}")
+        sets.extend(extra_sets or [])
+        return _msf_args(module, sets)
+    return build
+
+
+_reg(Tool(
+    id="msf_http_version", name="MSF: HTTP version", category="exploit", binary="msfconsole",
+    description="Metasploit: версия и баннер HTTP-сервера (auxiliary/scanner/http/http_version).",
+    target_kind="host", timeout=300, install_hint="профиль сборки max (make build-max)",
+    build_args=_msf_scanner("auxiliary/scanner/http/http_version"),
+    parse=make_generic_parser(re.compile(r"(?i)(is running|powered|server|\[\+\])"), "HTTP не определён"),
+))
+_reg(Tool(
+    id="msf_smb_version", name="MSF: SMB version", category="exploit", binary="msfconsole",
+    description="Metasploit: версия SMB и ОС хоста (auxiliary/scanner/smb/smb_version).",
+    target_kind="host", timeout=300, install_hint="профиль сборки max (make build-max)",
+    build_args=_msf_scanner("auxiliary/scanner/smb/smb_version", ["set RPORT 445"]),
+    parse=make_generic_parser(re.compile(r"(?i)(is running|Windows|SMB|\[\+\])"), "SMB не отвечает"),
+))
+_reg(Tool(
+    id="msf_ssh_version", name="MSF: SSH version", category="exploit", binary="msfconsole",
+    description="Metasploit: версия SSH-сервера (auxiliary/scanner/ssh/ssh_version).",
+    target_kind="host", timeout=300, install_hint="профиль сборки max (make build-max)",
+    build_args=_msf_scanner("auxiliary/scanner/ssh/ssh_version", ["set RPORT 22"]),
+    parse=make_generic_parser(re.compile(r"(?i)(is running|SSH|\[\+\])"), "SSH не отвечает"),
+))
+_reg(Tool(
+    id="msf_ftp_version", name="MSF: FTP version", category="exploit", binary="msfconsole",
+    description="Metasploit: версия FTP-сервера (auxiliary/scanner/ftp/ftp_version).",
+    target_kind="host", timeout=300, install_hint="профиль сборки max (make build-max)",
+    build_args=_msf_scanner("auxiliary/scanner/ftp/ftp_version", ["set RPORT 21"]),
+    parse=make_generic_parser(re.compile(r"(?i)(is running|FTP|\[\+\])"), "FTP не отвечает"),
+))
+_reg(Tool(
+    id="msf_vsftpd_backdoor", name="MSF: vsftpd 2.3.4 backdoor", category="exploit", binary="msfconsole",
+    description="Metasploit: проверка бэкдора vsftpd 2.3.4 (exploit/unix/ftp/vsftpd_234_backdoor).",
+    target_kind="host", timeout=300, install_hint="профиль сборки max (make build-max)",
+    build_args=_msf_scanner("exploit/unix/ftp/vsftpd_234_backdoor", ["set RPORT 21"]),
+    parse=parse_msf_generic,
+))
+_reg(Tool(
+    id="msf_smb_ms17_010", name="MSF: EternalBlue (MS17-010)", category="exploit", binary="msfconsole",
+    description="Metasploit: проверка уязвимости EternalBlue (auxiliary/scanner/smb/smb_ms17_010).",
+    target_kind="host", timeout=300, install_hint="профиль сборки max (make build-max)",
+    build_args=_msf_scanner("auxiliary/scanner/smb/smb_ms17_010", ["set RPORT 445"]),
+    parse=parse_msf_generic,
+))
+_reg(Tool(
+    id="msf_ssh_login", name="MSF: SSH login (brute)", category="exploit", binary="msfconsole",
+    description="Metasploit: подбор SSH-пароля (auxiliary/scanner/ssh/ssh_login) со словарём SecLists.",
+    target_kind="host", timeout=900, install_hint="профиль сборки max (make build-max)",
+    build_args=lambda t, o: _msf_args(
+        "auxiliary/scanner/ssh/ssh_login",
+        [
+            f"set RHOSTS {t}",
+            "set RPORT " + str(_opt_int(o, "port", 22, 1, 65535)),
+            "set USERNAME " + _opt_token(o, "user", "root"),
+            "set PASS_FILE " + _opt_wordlist(o),
+            "set STOP_ON_SUCCESS true",
+            "set THREADS " + str(_opt_int(o, "threads", 4, 1, 16)),
+        ],
+    ),
+    parse=parse_msf_generic,
+))
+_reg(Tool(
+    id="msf_custom", name="MSF: свой модуль", category="exploit", binary="msfconsole",
+    description="Произвольный модуль Metasploit (advanced). Опции: module (напр. auxiliary/scanner/…), "
+                "options_str — строки вида «set KEY VALUE» по одной на строку.",
+    target_kind="host", timeout=600, install_hint="профиль сборки max (make build-max)",
+    build_args=lambda t, o: _msf_custom_args(t, o),
+    parse=parse_msf_generic,
+))
+
+
+def _msf_custom_args(target: str, o: dict) -> List[str]:
+    module = _opt_token(o, "module", "", _MSF_MODULE_RE)
+    if not module:
+        raise ValueError("Укажите module (например, auxiliary/scanner/http/http_version)")
+    sets = [f"set RHOSTS {target}"]
+    for line in str(o.get("options_str", "") or "").splitlines():
+        line = line.strip()
+        m = re.match(r"^set\s+([A-Za-z0-9_]+)\s+(\S.{0,200})$", line)
+        if m and m.group(1).upper() not in ("RHOSTS",):
+            sets.append(f"set {m.group(1).upper()} {m.group(2).strip()}")
+    return _msf_args(module, sets)
+
+
 # ── Фаза 5: брутфорс / пароли ───────────────────────────────────────────────
 _BRUTE_SERVICES_RE = re.compile(r"^(ssh|ftp|telnet|rdp|smb|smtp|pop3|imap|mysql|postgres|mssql|vnc|http-get|http-post-form)$")
 
@@ -1141,27 +1354,33 @@ _reg(Tool(
 ))
 _reg(Tool(
     id="cewl", name="CeWL", category="brute", binary="cewl",
-    description="Генерация словаря из содержимого сайта (слова страниц вглубь на depth).",
+    description="Генерация словаря из содержимого сайта. Файл сохраняется в audit_runs/wordlists/ "
+                "и появляется в выпадающих списках словарей (A4.5).",
     target_kind="url", timeout=300, install_hint="apt install cewl",
     build_args=lambda t, o: [
         "cewl",
         "-d", str(_opt_int(o, "depth", 2, 1, 10)),
         "-m", str(_opt_int(o, "min_len", 5, 1, 30)),
+        "-w", os.path.join(GENERATED_WORDLISTS_DIR, f"cewl_{host_of(t)}.txt"),
         t,
     ],
-    parse=make_generic_parser(re.compile(r"^[A-Za-z0-9_@#%+.-]{3,}$"), "Слов не собрано"),
+    parse=make_generic_parser(re.compile(r"(?i)(cewl|words|written)"),
+                              f"Словарь сохранён в audit_runs/wordlists/"),
 ))
 _reg(Tool(
     id="crunch", name="crunch", category="brute", binary="crunch",
-    description="Генератор словарей по шаблону (min/max длина, алфавит). Цель не нужна.",
+    description="Генератор словарей по шаблону (min/max длина, алфавит). Цель не нужна. "
+                "Файл сохраняется в audit_runs/wordlists/.",
     target_kind="none", timeout=120, install_hint="apt install crunch",
     build_args=lambda t, o: [
         "crunch",
         str(_opt_int(o, "min_len", 4, 1, 16)),
         str(_opt_int(o, "max_len", 6, 1, 16)),
     ] + ([_opt_token(o, "charset", "", re.compile(r"^[A-Za-z0-9@#%+\-_.,]+$"))] if o.get("charset") else [])
-      + ["-o", os.path.join(AUDIT_DIR, f"crunch_{_opt_int(o, 'min_len', 4, 1, 16)}-{_opt_int(o, 'max_len', 6, 1, 16)}.txt")],
-    parse=make_generic_parser(re.compile(r"(?i)(words|mb|gb|generation|100%)"), "Словарь сгенерирован в audit_runs/"),
+      + ["-o", os.path.join(GENERATED_WORDLISTS_DIR,
+                            f"crunch_{_opt_int(o, 'min_len', 4, 1, 16)}-{_opt_int(o, 'max_len', 6, 1, 16)}.txt")],
+    parse=make_generic_parser(re.compile(r"(?i)(words|mb|gb|generation|100%)"),
+                              "Словарь сгенерирован в audit_runs/wordlists/"),
 ))
 
 # ── Фаза 7: утилиты ─────────────────────────────────────────────────────────
@@ -1210,10 +1429,13 @@ def _hydra_args(target: str, o: dict) -> List[str]:
                     "smtp": 25, "pop3": 110, "imap": 143, "mysql": 3306,
                     "postgres": 5432, "mssql": 1433, "vnc": 5900,
                     "http-get": 80, "http-post-form": 80}.get(service, 22)
+    # -L: файл логинов (если выбран в UI) имеет приоритет над одиночным -l
+    userlist = _allowed_wordlist_path(str(o.get("userlist", "") or ""))
+    use_userlist = bool(userlist)
     return [
         "hydra", "-f",
         "-t", str(_opt_int(o, "threads", 4, 1, 64)),
-        "-l", _opt_token(o, "user", "root"),
+        *(["-L", userlist] if use_userlist else ["-l", _opt_token(o, "user", "root")]),
         "-P", _opt_wordlist(o),
         "-s", str(_opt_int(o, "port", default_port, 1, 65535)),
         f"{service}://{target}",
@@ -1294,6 +1516,117 @@ def list_tools() -> List[dict]:
     # Сортировка: фаза → доступность → имя, чтобы UI выдавал рабочее первым.
     result.sort(key=lambda t: (t["category_order"], not t["available"], t["name"].lower()))
     return result
+
+
+# ── Рекомендации следующих шагов (A6) ────────────────────────────────────────
+_HTTP_PORTS = {80, 443, 8080, 8000, 8008, 8443, 8888, 5000, 9000}
+_HTTP_SERVICES = {"http", "https", "http-alt", "http-proxy", "www", "ssl/http"}
+
+
+def _suggestion(tool_id: str, target: str, reason: str, options: Optional[dict] = None) -> Optional[dict]:
+    tool = TOOLS.get(tool_id)
+    if tool is None or not tool.available:
+        return None
+    meta = _category_meta(tool.category)
+    return {
+        "tool_id": tool.id,
+        "name": tool.name,
+        "reason": reason,
+        "target": target,
+        "options": options or {},
+        "available": tool.available,
+        "category_label": meta["label"],
+        "category_order": meta["order"],
+    }
+
+
+def build_suggestions(scan_id: str) -> List[dict]:
+    """«Рекомендуемые следующие шаги» на основе открытых портов/сервисов скана
+    и результатов уже выполненных задач аудита (whatweb, wafw00f)."""
+    from app.database import get_audit_findings, get_hosts_by_scan
+
+    hosts = get_hosts_by_scan(scan_id)
+    tasks = get_audit_findings(scan_id)
+    ran = {(t["tool_id"], t["target"]) for t in tasks}
+
+    suggestions: List[dict] = []
+    seen = set()
+
+    def add(tool_id: str, target: str, reason: str, options: Optional[dict] = None):
+        key = (tool_id, target)
+        if key in seen or key in ran:
+            return
+        item = _suggestion(tool_id, target, reason, options)
+        if item:
+            seen.add(key)
+            suggestions.append(item)
+
+    for host in hosts:
+        if host.get("status") not in ("up", "unknown"):
+            continue
+        ip = host.get("ip") or ""
+        name = host.get("hostname") or ip
+        for port in host.get("ports", []):
+            if port.get("state") != "open":
+                continue
+            pnum = int(port.get("port") or 0)
+            service = (port.get("service") or "").lower()
+
+            if pnum in _HTTP_PORTS or service in _HTTP_SERVICES:
+                scheme = "https" if pnum in (443, 8443) or "ssl" in service or "https" in service else "http"
+                url = f"{scheme}://{name}:{pnum}" if pnum not in (80, 443) else f"{scheme}://{name}"
+                add("whatweb", url, f"HTTP на {ip}:{pnum} — определить технологии")
+                add("wafw00f", url, f"HTTP на {ip}:{pnum} — проверить наличие WAF")
+                add("gobuster", url, f"HTTP на {ip}:{pnum} — перебор директорий")
+                add("nikto", url, f"HTTP на {ip}:{pnum} — сканер веб-сервера")
+                add("nuclei", url, f"HTTP на {ip}:{pnum} — шаблоны уязвимостей")
+            if pnum in (443, 8443) or "ssl" in service or "https" in service:
+                add("sslscan", name, f"TLS на {ip}:{pnum} — протоколы и шифры", {"port": pnum})
+                add("testssl", name, f"TLS на {ip}:{pnum} — глубокий аудит", {"port": pnum})
+            if pnum == 22 or service == "ssh":
+                add("msf_ssh_version", ip, f"SSH на {ip}:22 — версия сервера (MSF)")
+                add("hydra", ip, f"SSH на {ip}:22 — подбор пароля", {"service": "ssh", "port": pnum})
+            if pnum == 21 or service == "ftp":
+                add("msf_ftp_version", ip, f"FTP на {ip}:21 — версия сервера (MSF)")
+                add("hydra", ip, f"FTP на {ip}:21 — подбор пароля", {"service": "ftp", "port": pnum})
+            if pnum in (139, 445) or service in ("netbios-ssn", "microsoft-ds"):
+                add("enum4linux", ip, f"SMB на {ip}:{pnum} — пользователи, шары, политика")
+                add("smbmap", ip, f"SMB на {ip}:{pnum} — права доступа к шарам")
+                add("msf_smb_ms17_010", ip, f"SMB на {ip}:{pnum} — проверка EternalBlue (MSF)")
+            if pnum == 3389 or service in ("ms-wbt-server", "rdp"):
+                add("hydra", ip, f"RDP на {ip}:3389 — подбор пароля", {"service": "rdp", "port": pnum})
+            if pnum == 3306 or service == "mysql":
+                add("hydra", ip, f"MySQL на {ip}:3306 — подбор пароля", {"service": "mysql", "port": pnum})
+            if pnum == 5432 or service == "postgresql":
+                add("hydra", ip, f"PostgreSQL на {ip}:5432 — подбор пароля", {"service": "postgres", "port": pnum})
+            if pnum == 161 or service == "snmp":
+                add("snmpwalk", ip, f"SNMP на {ip}:161 — системная информация (community public)")
+            if pnum == 389 or service == "ldap":
+                add("ldapsearch", ip, f"LDAP на {ip}:389 — анонимный запрос каталога")
+            if pnum == 2049 or service == "nfs":
+                add("showmount", ip, f"NFS на {ip}:2049 — экспортируемые каталоги")
+
+    # Технологии и WAF из уже выполненных задач аудита.
+    for task in tasks:
+        tool_id, target = task.get("tool_id"), task.get("target") or ""
+        try:
+            import json as _json
+            findings = _json.loads(task.get("findings") or "[]")
+        except ValueError:
+            findings = []
+        blob = " ".join(f"{f.get('title', '')} {f.get('detail', '')}".lower() for f in findings)
+        if tool_id == "whatweb":
+            if "wordpress" in blob:
+                add("wpscan", target, "WhatWeb: обнаружен WordPress — сканер CMS")
+            if "joomla" in blob:
+                add("joomscan", target, "WhatWeb: обнаружена Joomla — сканер CMS")
+            if "drupal" in blob:
+                add("droopescan", target, "WhatWeb: обнаружен Drupal — сканер CMS")
+        if tool_id == "wafw00f" and any("waf обнаружен" in (f.get("title", "").lower()) for f in findings):
+            add("dalfox", target, "Обнаружен WAF — XSS с обходом фильтров", {"waf_bypass": True})
+
+    suggestions.sort(key=lambda s: (s["category_order"], s["name"].lower()))
+    return suggestions[:20]
 
 
 # ── Раннер ───────────────────────────────────────────────────────────────────

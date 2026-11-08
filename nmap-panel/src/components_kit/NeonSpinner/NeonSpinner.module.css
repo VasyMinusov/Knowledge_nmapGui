@@ -1,35 +1,21 @@
 .wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.svg {
-  filter: drop-shadow(0 0 12px var(--color-accent-neon)); /* усиленное свечение */
-}
-
-.track {
-  fill: none;
-  stroke: var(--color-bg-elevated);
-  stroke-width: 4; /* толще */
-}
-
-.arc {
-  fill: none;
-  stroke: var(--color-accent-neon);
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-
-.tick {
-  fill: var(--color-accent-neon);
-  filter: drop-shadow(0 0 4px var(--color-accent-neon)); /* засечки тоже светятся */
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  text-shadow: var(--pip-glow-dim);
 }
 
 .label {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }

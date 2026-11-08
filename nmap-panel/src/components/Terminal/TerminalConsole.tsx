@@ -1,6 +1,5 @@
 // src/components/Terminal/TerminalConsole.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'motion/react';
 import { NeonButton } from '@/components_kit';
 import { VscDebugStop, VscClearAll, VscChevronRight } from 'react-icons/vsc';
 import type { TerminalConsoleProps } from './Terminal.types';
@@ -92,12 +91,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({ term, interact
         <span className={styles.dot} data-c="g" />
         <span className={styles.barTitle}>
           {running ? (
-            <motion.span
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 1.1, repeat: Infinity }}
-            >
-              ● выполняется
-            </motion.span>
+            <span className={styles.blink}>● выполняется</span>
           ) : exitCode === null ? (
             'idle'
           ) : (
@@ -150,3 +144,4 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({ term, interact
     </div>
   );
 };
+

@@ -1,8 +1,22 @@
 :root {
-  --font-mono: 'Courier New', Consolas, monospace;
-  --font-display: 'Impact', 'Arial Black', sans-serif;
-  --font-size-sm: 12px;
-  --font-size-md: 14px;
-  --font-size-lg: 16px;
-  --letter-spacing-wide: 2px;
+  /* Pip-Boy: моноширинный шрифт терминала */
+  --pip-font: 'Share Tech Mono', 'VT323', 'Courier New', ui-monospace, monospace;
+  --pip-fs-sm: 12px;
+  --pip-fs-md: 13px;
+  --pip-fs-lg: 16px;
+  --pip-fs-xl: 20px;
+  --pip-ls: 0.5px;
+
+  /* ---- Легаси-алиасы (миграция B7 удалит) ---- */
+  --font-mono: var(--pip-font);
+  --font-display: var(--pip-font);
+  --font-size-sm: var(--pip-fs-sm);
+  --font-size-md: var(--pip-fs-md);
+  --font-size-lg: var(--pip-fs-lg);
+  --letter-spacing-wide: 1px;
+}
+
+/* Альтернативный CRT-шрифт */
+[data-font="vt323"] {
+  --pip-font: 'VT323', 'Share Tech Mono', 'Courier New', ui-monospace, monospace;
 }

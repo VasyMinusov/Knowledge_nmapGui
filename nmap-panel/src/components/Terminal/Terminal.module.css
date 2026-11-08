@@ -55,16 +55,12 @@
 }
 
 .toggleActive {
-  color: var(--color-bg-primary);
+  background: var(--pip-invert-bg, var(--color-accent-neon));
+  color: var(--pip-invert-fg, var(--color-bg-primary));
+  text-shadow: none;
 }
 
-.pill {
-  position: absolute;
-  inset: 0;
-  background: var(--color-accent-neon);
-  box-shadow: 0 0 18px var(--color-accent-glow), inset 0 0 8px rgba(0, 0, 0, 0.3);
-  z-index: 0;
-}
+/* pill убран: активный режим выделяется инверсией (.toggleActive) */
 
 .toggleLabel {
   position: relative;
@@ -117,3 +113,4 @@
 .builderPane {
   margin-top: 18px;
 }
+

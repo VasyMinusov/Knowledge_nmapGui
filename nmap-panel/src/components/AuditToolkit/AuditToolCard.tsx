@@ -15,12 +15,20 @@ const CATEGORY_ICON: Record<string, string> = {
   utils: '🛠',
 };
 
-// Группы опций по id инструментов (словари-списки придут в A4.4).
-const PORT_TOOLS = new Set(['sslyze', 'openssl_cert', 'ldapsearch', 'hydra']);
+// Группы опций по id инструментов.
+const PORT_TOOLS = new Set(['sslyze', 'openssl_cert', 'ldapsearch', 'hydra', 'msf_ssh_login']);
 const WORDLIST_TOOLS = new Set([
   'gobuster', 'ffuf', 'feroxbuster', 'dirsearch', 'wfuzz', 'dnsenum',
   'hydra', 'medusa', 'patator', 'ncrack', 'john', 'hashcat',
 ]);
+// A4.4: какая категория словарей подходит инструменту.
+const WORDLIST_KIND: Record<string, 'directories' | 'passwords' | 'subdomains'> = {
+  gobuster: 'directories', ffuf: 'directories', feroxbuster: 'directories',
+  dirsearch: 'directories', wfuzz: 'directories', dnsenum: 'subdomains',
+  hydra: 'passwords', medusa: 'passwords', patator: 'passwords', ncrack: 'passwords',
+  john: 'passwords', hashcat: 'passwords',
+};
+const USERLIST_TOOLS = new Set(['hydra']); // A4.4: отдельное поле -L
 const THREADS_TOOLS = new Set([
   'gobuster', 'ffuf', 'feroxbuster', 'dirsearch', 'wfuzz',
   'hydra', 'medusa', 'patator', 'ncrack',
@@ -30,15 +38,24 @@ const USER_TOOLS = new Set(['hydra', 'medusa', 'patator', 'ncrack', 'smbmap', 'r
 const SERVICE_TOOLS = new Set(['hydra', 'ncrack']);
 const MODULE_TOOLS = new Set(['medusa', 'patator']);
 
-export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, running, onRun }) => {
+const humanSize = (bytes: number): string => {
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} КБ`;
+  return `${bytes} Б`;
+};
+
+export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, running, wordlists, onRun }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [port, setPort] = useState('443');
   const [threads, setThreads] = useState('20');
   const [extensions, setExtensions] = useState('');
   const [wordlist, setWordlist] = useState('');
+  const [userlist, setUserlist] = useState('');
   const [user, setUser] = useState('root');
   const [service, setService] = useState('ssh');
   const [module, setModule] = useState('ssh_login');
+  const [msfModule, setMsfModule] = useState('');
+  const [msfOptions, setMsfOptions] = useState('');
   const [aggression, setAggression] = useState('1');
   const [severity, setSeverity] = useState('low,medium,high,critical');
   const [wpEnumerate, setWpEnumerate] = useState('vp,vt,u');
@@ -48,13 +65,15 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
     tool.category === 'tls'
     || PORT_TOOLS.has(tool.id)
     || WORDLIST_TOOLS.has(tool.id)
+    || USERLIST_TOOLS.has(tool.id)
     || USER_TOOLS.has(tool.id)
-    || ['whatweb', 'nuclei', 'wpscan', 'subfinder'].includes(tool.id);
+    || ['whatweb', 'nuclei', 'wpscan', 'subfinder', 'msf_custom'].includes(tool.id);
 
   const collectOptions = (): Record<string, unknown> => {
     const o: Record<string, unknown> = {};
     if (tool.category === 'tls' || PORT_TOOLS.has(tool.id)) o.port = Number(port) || 443;
     if (WORDLIST_TOOLS.has(tool.id) && wordlist.trim()) o.wordlist = wordlist.trim();
+    if (USERLIST_TOOLS.has(tool.id) && userlist.trim()) o.userlist = userlist.trim();
     if (THREADS_TOOLS.has(tool.id)) o.threads = Number(threads) || 20;
     if (EXTENSIONS_TOOLS.has(tool.id) && extensions.trim()) o.extensions = extensions.trim();
     if (USER_TOOLS.has(tool.id)) o.user = user.trim() || 'root';
@@ -64,6 +83,10 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
     if (tool.id === 'nuclei') o.severity = severity;
     if (tool.id === 'wpscan') o.enumerate = wpEnumerate;
     if (tool.id === 'subfinder') o.all = allSources;
+    if (tool.id === 'msf_custom') {
+      o.module = msfModule.trim();
+      if (msfOptions.trim()) o.options_str = msfOptions.trim();
+    }
     return o;
   };
 
@@ -93,15 +116,49 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
           {(tool.category === 'tls' || PORT_TOOLS.has(tool.id)) && (
             <NeonInput label="Порт" value={port} onChange={setPort} size="sm" placeholder="443" />
           )}
-          {WORDLIST_TOOLS.has(tool.id) && (
-            <NeonInput
-              label="Словарь (путь в контейнере, пусто = по умолчанию)"
-              value={wordlist}
-              onChange={setWordlist}
-              size="sm"
-              placeholder="/usr/share/seclists/…"
-            />
-          )}
+          {WORDLIST_TOOLS.has(tool.id) && (() => {
+            const kind = WORDLIST_KIND[tool.id] ?? 'directories';
+            const entries = [...(wordlists?.[kind] ?? []), ...(wordlists?.generated ?? [])];
+            if (entries.length > 0) {
+              return (
+                <NeonSelect
+                  label={`Словарь (${kind === 'passwords' ? 'пароли' : kind === 'subdomains' ? 'поддомены' : 'директории'})`}
+                  value={wordlist}
+                  onChange={setWordlist}
+                  options={[
+                    { value: '', label: 'по умолчанию' },
+                    ...entries.map((e) => ({ value: e.path, label: `${e.name} (${humanSize(e.size)})` })),
+                  ]}
+                />
+              );
+            }
+            return (
+              <NeonInput
+                label="Словарь (путь в контейнере, пусто = по умолчанию)"
+                value={wordlist}
+                onChange={setWordlist}
+                size="sm"
+                placeholder="/usr/share/seclists/…"
+              />
+            );
+          })()}
+          {USERLIST_TOOLS.has(tool.id) && (() => {
+            const entries = wordlists?.usernames ?? [];
+            if (entries.length > 0) {
+              return (
+                <NeonSelect
+                  label="Файл логинов -L (пусто = один логин)"
+                  value={userlist}
+                  onChange={setUserlist}
+                  options={[
+                    { value: '', label: '— не использовать —' },
+                    ...entries.map((e) => ({ value: e.path, label: `${e.name} (${humanSize(e.size)})` })),
+                  ]}
+                />
+              );
+            }
+            return null;
+          })()}
           {THREADS_TOOLS.has(tool.id) && (
             <NeonInput label="Потоки" value={threads} onChange={setThreads} size="sm" />
           )}
@@ -181,6 +238,24 @@ export const AuditToolCard: React.FC<AuditToolCardProps> = ({ tool, disabled, ru
                 { value: 'u', label: 'только пользователи' },
               ]}
             />
+          )}
+          {tool.id === 'msf_custom' && (
+            <>
+              <NeonInput
+                label="Модуль Metasploit"
+                value={msfModule}
+                onChange={setMsfModule}
+                size="sm"
+                placeholder="auxiliary/scanner/http/http_version"
+              />
+              <NeonInput
+                label="set-опции (по строке: set KEY VALUE)"
+                value={msfOptions}
+                onChange={setMsfOptions}
+                size="sm"
+                placeholder="set RPORT 8080"
+              />
+            </>
           )}
           {tool.id === 'subfinder' && (
             <NeonSelect

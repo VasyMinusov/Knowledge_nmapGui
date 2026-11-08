@@ -9,13 +9,19 @@ const getInitials = (name: string) =>
     .map((w) => w[0]?.toUpperCase())
     .join('');
 
+const STATUS_GLYPH = { online: '●', offline: '○', busy: '▲' } as const;
+
 export const Avatar: React.FC<AvatarProps> = ({ name, size = 36, status }) => {
   return (
     <span className={styles.wrapper} style={{ width: size, height: size }}>
       <span className={styles.square} style={{ fontSize: size * 0.38 }}>
         {getInitials(name)}
       </span>
-      {status && <span className={`${styles.status} ${styles[status]}`} />}
+      {status && (
+        <span className={`${styles.status} ${styles[status]}`}>
+          {STATUS_GLYPH[status]}
+        </span>
+      )}
     </span>
   );
 };

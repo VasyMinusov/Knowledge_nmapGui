@@ -1,41 +1,29 @@
 .wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-md);
+  color: var(--pip-fg);
+}
+
+.wrapper:hover:not(.disabled) {
+  text-shadow: var(--pip-glow);
 }
 
 .wrapper.disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+/* Текстовый чекбокс: [x] / [ ] */
 .box {
-  width: 20px;
-  height: 20px;
-  background: var(--color-bg-elevated);
-  border: 2px solid var(--color-border-default);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--pip-fg);
   flex-shrink: 0;
 }
 
-.box.checked {
-  border-color: var(--color-accent-neon);
-  box-shadow: var(--shadow-neon-sm);
-}
-
-.svg {
-  width: 16px;
-  height: 16px;
-  stroke: var(--color-accent-neon);
-  filter: drop-shadow(0 0 4px var(--color-accent-neon));
-}
-
 .label {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-md);
-  color: var(--color-text-primary);
+  color: var(--pip-fg);
 }

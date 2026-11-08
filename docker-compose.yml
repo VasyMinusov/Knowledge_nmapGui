@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         # slim = только apt-инструменты (быстрая сборка); full = + Go/pipx/testssl
+        # max = full + Metasploit + SecLists (~3–4 ГБ; make build-max)
         TOOLS_PROFILE: ${TOOLS_PROFILE:-full}
     container_name: nmap-backend
     restart: unless-stopped

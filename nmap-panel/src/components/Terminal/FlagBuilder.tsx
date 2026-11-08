@@ -1,8 +1,6 @@
 // src/components/Terminal/FlagBuilder.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { NeonButton, NeonInput, NeonSelect, NeonCheckbox, StatusBadge } from '@/components_kit';
-import { transitions } from '@/tokens/motion';
 import { VscPlay, VscRefresh, VscArrowLeft, VscTerminal } from 'react-icons/vsc';
 import type { TerminalTool } from '@/api/nmapApi';
 import type { FlagBuilderProps } from './Terminal.types';
@@ -16,6 +14,11 @@ const CAT_ICON: Record<string, string> = {
   osint: '🔎',
   network: '🌐',
   brute: '🔑',
+  // фазы PTES (A2.1)
+  scanning: '📡',
+  vuln: '☣',
+  exploit: '💥',
+  utils: '🛠',
 };
 
 const needsQuote = (v: string) => /[\s"'`$;|&<>()?*]/.test(v);
@@ -110,15 +113,11 @@ export const FlagBuilder: React.FC<FlagBuilderProps> = ({
       <div className={styles.picker}>
         <div className={styles.pickerHint}>Выберите инструмент — дальше соберём флаги</div>
         <div className={styles.grid}>
-          {tools.map((tl, i) => (
-            <motion.button
+          {tools.map((tl) => (
+            <button
               key={tl.id}
               className={`${styles.toolCard} ${!tl.available ? styles.dim : ''}`}
               onClick={() => setSelectedId(tl.id)}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...transitions.mechanical, delay: i * 0.03 }}
-              whileHover={{ y: -4, boxShadow: '0 0 22px var(--color-accent-glow)' }}
             >
               <span className={styles.toolIcon}>{CAT_ICON[tl.category] ?? '▪'}</span>
               <span className={styles.toolName}>{tl.name}</span>
@@ -130,7 +129,7 @@ export const FlagBuilder: React.FC<FlagBuilderProps> = ({
                   variant={tl.available ? 'accent' : 'muted'}
                 />
               </span>
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>
@@ -160,14 +159,8 @@ export const FlagBuilder: React.FC<FlagBuilderProps> = ({
       </div>
 
       <div className={styles.groups}>
-        {groups.map(([name, list], gi) => (
-          <motion.div
-            key={name}
-            className={styles.group}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ ...transitions.smooth, delay: gi * 0.04 }}
-          >
+        {groups.map(([name, list]) => (
+          <div key={name} className={styles.group}>
             <div className={styles.groupName}>{name}</div>
             <div className={styles.groupBody}>
               {list.map((f) => {
@@ -183,15 +176,8 @@ export const FlagBuilder: React.FC<FlagBuilderProps> = ({
                       <code className={styles.flagCode}>{f.flag}</code>
                     </div>
                     <div className={styles.flagDesc}>{f.description}</div>
-                    <AnimatePresence>
-                      {st.on && f.type !== 'bool' && (
-                        <motion.div
-                          className={styles.flagInput}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={transitions.snap}
-                        >
+                    {st.on && f.type !== 'bool' && (
+                        <div className={styles.flagInput}>
                           {f.type === 'choice' ? (
                             <NeonSelect
                               value={st.value}
@@ -207,28 +193,21 @@ export const FlagBuilder: React.FC<FlagBuilderProps> = ({
                               size="sm"
                             />
                           )}
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
                   </div>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       <div className={styles.previewWrap}>
         <div className={styles.previewLabel}>Команда</div>
-        <motion.div
-          className={styles.preview}
-          key={command}
-          initial={{ boxShadow: '0 0 0 var(--color-accent-glow)' }}
-          animate={{ boxShadow: '0 0 16px var(--color-accent-dim)' }}
-          transition={{ duration: 0.4 }}
-        >
+        <div className={styles.preview}>
           <code>$ {command}</code>
-        </motion.div>
+        </div>
         <div className={styles.previewActions}>
           <NeonButton
             size="md"
@@ -251,3 +230,4 @@ export const FlagBuilder: React.FC<FlagBuilderProps> = ({
     </div>
   );
 };
+

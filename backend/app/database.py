@@ -463,6 +463,22 @@ def get_audit_tasks(scan_id: Optional[str] = None, limit: int = 100, offset: int
     return [dict(row) for row in rows]
 
 
+def get_audit_findings(scan_id: str) -> List[Dict]:
+    """Все завершённые задачи аудита скана вместе с findings (для сводной
+    панели находок и рекомендаций следующих шагов)."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT task_id, tool_id, target, status, start_time, findings
+           FROM audit_tasks WHERE scan_id = ? AND status = 'done'
+           ORDER BY start_time""",
+        (scan_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
 def get_audit_task(task_id: str) -> Optional[Dict]:
     conn = get_db()
     cursor = conn.cursor()

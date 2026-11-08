@@ -1,5 +1,3 @@
-import { motion } from 'motion/react';
-import { transitions } from '../../tokens/motion';
 import type { IndustrialToggleProps } from './IndustrialToggle.types';
 import styles from './IndustrialToggle.module.css';
 
@@ -9,17 +7,21 @@ export const IndustrialToggle: React.FC<IndustrialToggleProps> = ({
   disabled,
 }) => {
   return (
-    <motion.div
-      className={`${styles.track} ${checked ? styles.checked : ''} ${disabled ? styles.disabled : ''}`}
+    <span
+      className={`${styles.toggle} ${disabled ? styles.disabled : ''}`}
+      role="switch"
+      aria-checked={checked}
+      tabIndex={disabled ? -1 : 0}
       onClick={() => !disabled && onChange(!checked)}
-      whileTap={{ scale: 0.95 }}
-      transition={transitions.mechanical}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          onChange(!checked);
+        }
+      }}
     >
-      <motion.div
-        className={styles.thumb}
-        layout
-        transition={transitions.snap}
-      />
-    </motion.div>
+      [{checked ? 'ON ' : 'OFF'}]
+    </span>
   );
 };

@@ -3,24 +3,21 @@
 @import './tokens/shadows.css';
 
 body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-mono);
-  text-shadow: 0 0 12px rgba(102, 255, 51, 0.7);   /* было 0.6, увеличен радиус и яркость */
-  letter-spacing: 0.8px;
+  background: var(--pip-bg);
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-md);
+  text-shadow: var(--pip-glow-dim);   /* лёгкий фосфорный ореол текста */
+  letter-spacing: var(--pip-ls);
   -webkit-font-smoothing: none;
 }
 
 .machine-party-root {
-  text-shadow: 0 0 15px rgba(102, 255, 51, 0.6);   /* было 0.5 */
-  --border-width: 4px;
+  text-shadow: var(--pip-glow-dim);
+  --border-width: 1px;
 }
 
-.machine-party-root::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.6) 100%);
-  pointer-events: none;
-  z-index: 9998;
+/* Опциональный класс мерцания CRT (применять точечно) */
+.pip-flicker {
+  animation: pip-flicker 4s steps(1, end) infinite;
 }

@@ -66,3 +66,10 @@ class AuditTaskStatus(BaseModel):
     output: str = ""
     findings: List[AuditFinding] = []
     summary: Optional[str] = None
+
+
+class PayloadGenerateRequest(BaseModel):
+    payload: str           # например windows/x64/meterpreter/reverse_tcp
+    lhost: str
+    lport: int = 4444
+    format: str = "exe"    # exe | elf | raw | python | psh | php | asp | aspx | jsp | war | dll | macho

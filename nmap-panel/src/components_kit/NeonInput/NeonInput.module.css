@@ -1,47 +1,49 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
 .label {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  font-size: var(--pip-fs-sm);
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-text-secondary);
+  color: var(--pip-fg-dim);
 }
 
+/* Только нижняя линия — никаких боксов */
 .field {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--color-bg-elevated);
-  border: 3px solid var(--color-border-default);
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--pip-border-dim);
 }
 
 .field.focused {
-  border-color: var(--color-accent-neon);
+  border-bottom-color: var(--pip-border);
 }
 
 .field.errorField {
-  border-color: var(--color-danger-base);
+  border-bottom-color: var(--pip-danger);
 }
 
 .field.disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+.prompt {
+  color: var(--pip-fg-dim);
+  flex-shrink: 0;
 }
 
 .icon {
   display: flex;
   align-items: center;
-  padding-left: 10px;
-  color: var(--color-text-muted);
+  color: var(--pip-fg-dim);
 }
 
 .input {
@@ -49,14 +51,14 @@
   background: transparent;
   border: none;
   outline: none;
-  color: var(--color-text-primary);
-  font-family: var(--font-mono);
-  text-shadow: 0 0 6px var(--color-accent-glow);
+  color: var(--pip-fg);
+  font-family: var(--pip-font);
+  text-shadow: var(--pip-glow-dim);
   min-width: 0;
 }
 
 .input::placeholder {
-  color: var(--color-text-muted);
+  color: var(--pip-fg-ghost);
   text-shadow: none;
 }
 
@@ -64,33 +66,31 @@
   cursor: not-allowed;
 }
 
-.sm .field { padding: 6px 10px; }
-.sm .input { font-size: var(--font-size-sm); }
-.md .field { padding: 10px 14px; }
-.md .input { font-size: var(--font-size-md); }
-.lg .field { padding: 14px 18px; }
-.lg .input { font-size: var(--font-size-lg); }
-
-.caretBar {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent-neon);
-  box-shadow: 0 0 8px var(--color-accent-neon);
-  transform-origin: left;
+/* Мигающий блочный курсор при фокусе (1s, как в терминале) */
+.cursor {
+  color: var(--pip-fg);
+  animation: pip-blink 1s steps(1, end) infinite;
+  flex-shrink: 0;
 }
 
+@keyframes pip-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.sm .field { padding: 4px 2px; }
+.sm .input { font-size: var(--pip-fs-sm); }
+.md .field { padding: 6px 2px; }
+.md .input { font-size: var(--pip-fs-md); }
+.lg .field { padding: 8px 2px; }
+.lg .input { font-size: var(--pip-fs-lg); }
+
 .error {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-danger-base);
-  text-shadow: 0 0 6px var(--color-danger-glow);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-danger);
 }
 
 .hint {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-size: var(--pip-fs-sm);
+  color: var(--pip-fg-dim);
 }

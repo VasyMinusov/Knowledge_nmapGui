@@ -1,44 +1,54 @@
 :root {
-  /* Фон — глубокий тёмно-зелёный, но чуть светлее для контраста */
-  --color-bg-primary: #0c120c;
-  --color-bg-secondary: #111a11;
-  --color-bg-tertiary: #182618;
-  --color-bg-elevated: #1f301f;
+  /* Pip-Boy: единый фосфорный цвет. Ни градиентов, ни кислотных акцентов. */
+  --pip-bg: #0a0f0a;
+  --pip-bg-dim: #050805;
+  --pip-fg: #33ff66;
+  --pip-fg-dim: #1a9944;
+  --pip-fg-ghost: rgba(51, 255, 102, 0.35);
+  --pip-invert-bg: #33ff66;   /* инверсия: фон = цвет текста */
+  --pip-invert-fg: #0a0f0a;   /* инверсия: текст = цвет фона */
+  --pip-danger: #ff4444;
+  --pip-warning: #ffbb00;
+  --pip-border: #33ff66;
+  --pip-border-dim: #1a9944;
+  --pip-border-dbl: 3px double #33ff66;
 
-  /* Кислотный акцент — более яркий и насыщенный */
-  --color-accent-neon: #66ff33;        /* вместо #3dff00 — ярче */
-  --color-accent-dim: rgba(102, 255, 51, 0.3);
-  --color-accent-glow: rgba(102, 255, 51, 0.8);
-  --color-accent-glow-strong: rgba(102, 255, 51, 1);
+  /* Лёгкое свечение текста — имитация фосфора (только text-shadow) */
+  --pip-glow: 0 0 6px rgba(51, 255, 102, 0.55);
+  --pip-glow-dim: 0 0 4px rgba(51, 255, 102, 0.35);
 
-  /* Опасность — тоже ярче */
-  --color-danger-base: #ff5555;        /* вместо #ff4444 */
-  --color-danger-glow: rgba(255, 85, 85, 0.8);
-
-  /* Текст — более светлый оттенок */
-  --color-text-primary: #ccff66;       /* вместо #b0ff00 */
-  --color-text-secondary: #a8e633;
-  --color-text-muted: #77aa33;
-
-  /* Рамки — ярче */
-  --color-border-default: #66ff33;
-  --color-border-accent: #66ff33;
+  /* ---- Легаси-алиасы (миграция B7 удалит) ---- */
+  --color-bg-primary: var(--pip-bg);
+  --color-bg-secondary: var(--pip-bg);
+  --color-bg-tertiary: var(--pip-bg);
+  --color-bg-elevated: var(--pip-bg);
+  --color-accent-neon: var(--pip-fg);
+  --color-accent-dim: var(--pip-fg-ghost);
+  --color-accent-glow: var(--pip-fg);
+  --color-accent-glow-strong: var(--pip-fg);
+  --color-danger-base: var(--pip-danger);
+  --color-danger-glow: var(--pip-danger);
+  --color-text-primary: var(--pip-fg);
+  --color-text-secondary: var(--pip-fg-dim);
+  --color-text-muted: var(--pip-fg-dim);
+  --color-border-default: var(--pip-border);
+  --color-border-accent: var(--pip-border);
 }
 
+/* Янтарная тема (Pip-Boy amber) */
 [data-theme="yellow"] {
-  --color-bg-primary: #1a140e;
-  --color-bg-secondary: #221c14;
-  --color-bg-tertiary: #2a2218;
-  --color-bg-elevated: #33291e;
-  --color-accent-neon: #ffb800;
-  --color-accent-dim: rgba(255, 184, 0, 0.3);
-  --color-accent-glow: rgba(255, 184, 0, 0.8);
-  --color-accent-glow-strong: rgba(255, 184, 0, 1);
-  --color-danger-base: #3399ff;  /* синий вместо красного */
-  --color-danger-glow: rgba(51, 153, 255, 0.8);
-  --color-text-primary: #ffdd66;
-  --color-text-secondary: #e6b800;
-  --color-text-muted: #a67c00;
-  --color-border-default: #ffb800;
-  --color-border-accent: #ffb800;
+  --pip-bg: #120e05;
+  --pip-bg-dim: #0a0702;
+  --pip-fg: #ffbb33;
+  --pip-fg-dim: #996b1a;
+  --pip-fg-ghost: rgba(255, 187, 51, 0.35);
+  --pip-invert-bg: #ffbb33;
+  --pip-invert-fg: #120e05;
+  --pip-danger: #ff5533;
+  --pip-warning: #ffdd55;
+  --pip-border: #ffbb33;
+  --pip-border-dim: #996b1a;
+  --pip-border-dbl: 3px double #ffbb33;
+  --pip-glow: 0 0 6px rgba(255, 187, 51, 0.55);
+  --pip-glow-dim: 0 0 4px rgba(255, 187, 51, 0.35);
 }

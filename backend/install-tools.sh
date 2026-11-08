@@ -6,6 +6,8 @@
 #   slim  — только пакеты apt (быстрая сборка, ~400 МБ поверх базового образа)
 #   full  — apt + Go-инструменты (ProjectDiscovery и др.) + pipx + testssl.sh
 #           (по умолчанию; сборка дольше и образ крупнее ~1.5–2 ГБ)
+#   max   — full + Metasploit Framework + SecLists (~3–4 ГБ; make build-max)
+#           В закрытом контуре SecLists можно подменить: SECLISTS_MIRROR=<git-url>
 #
 # Отсутствие отдельного пакета/инструмента НЕ прерывает сборку — в конце
 # печатается сводка пропущенного.
@@ -184,11 +186,51 @@ fi
 # первичная загрузка шаблонов nuclei (не критично при офлайн-сборке)
 command -v nuclei >/dev/null 2>&1 && (nuclei -update-templates || true)
 
+# ── профиль max: Metasploit + SecLists (образ ~3–4 ГБ) ────────────────────
+if [ "$PROFILE" != "max" ]; then
+  echo "========================================"
+  if [ -n "$SKIPPED" ]; then
+    echo "install-tools.sh ($PROFILE): готово. НЕ установлено:$SKIPPED"
+  else
+    echo "install-tools.sh ($PROFILE): все инструменты установлены"
+  fi
+  exit 0
+fi
+
+echo "----"
+echo "TOOLS_PROFILE=max: ставим Metasploit и SecLists…"
+
+# SecLists (словари для gobuster/ffuf/hydra/…). В закрытом контуре можно
+# переопределить источник через SECLISTS_MIRROR.
+if [ ! -d /usr/share/seclists ]; then
+  SECLISTS_URL="${SECLISTS_MIRROR:-https://github.com/danielmiessler/SecLists.git}"
+  if git clone --depth 1 "$SECLISTS_URL" /usr/share/seclists; then
+    echo "ok: seclists"
+  else
+    note_skip "seclists"
+  fi
+else
+  echo "ok: seclists (уже есть)"
+fi
+
+# Metasploit Framework: официальный инсталлятор Rapid7 (в Debian пакета нет).
+# Работает без PostgreSQL: db_*-команды недоступны, но scanner/auxiliary-модули — да.
+if ! command -v msfconsole >/dev/null 2>&1; then
+  if curl -sSL -o /tmp/msfinstall \
+    https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb \
+    && chmod 755 /tmp/msfinstall && /tmp/msfinstall; then
+    echo "ok: metasploit-framework (rapid7)"
+  else
+    note_skip "metasploit-framework"
+  fi
+  rm -f /tmp/msfinstall
+fi
+
 echo "========================================"
 if [ -n "$SKIPPED" ]; then
-  echo "install-tools.sh (full): готово. НЕ установлено:$SKIPPED"
+  echo "install-tools.sh (max): готово. НЕ установлено:$SKIPPED"
 else
-  echo "install-tools.sh (full): все инструменты установлены"
+  echo "install-tools.sh (max): все инструменты установлены"
 fi
 exit 0
 

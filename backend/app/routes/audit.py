@@ -7,12 +7,20 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from app.audit_tools import (
     CATEGORIES,
     TOOLS,
+    build_suggestions,
     cancel_audit_task,
     get_audit_status,
     list_tools,
+    list_wordlists,
     run_audit_task,
 )
-from app.database import delete_audit_task, get_audit_task, get_audit_tasks
+from app.database import (
+    delete_audit_task,
+    get_audit_findings,
+    get_audit_task,
+    get_audit_tasks,
+    get_scan_by_id,
+)
 from app.models import AuditRunRequest
 
 router = APIRouter(prefix="/api/audit", tags=["audit"])
@@ -90,6 +98,60 @@ async def audit_cancel(task_id: str):
 @router.get("/history")
 async def audit_history(scan_id: str | None = None, limit: int = 100, offset: int = 0):
     return {"tasks": get_audit_tasks(scan_id, limit, offset)}
+
+
+@router.get("/wordlists")
+async def audit_wordlists():
+    """Списки словарей по категориям: directories, usernames, passwords,
+    params, subdomains + generated (созданные cewl/crunch). Кэш 1 час (A4.3)."""
+    return {"categories": list_wordlists()}
+
+
+@router.get("/suggestions")
+async def audit_suggestions(scan_id: str):
+    """Рекомендуемые следующие шаги на основе открытых портов/сервисов скана
+    и технологий из уже выполненных задач аудита (A6)."""
+    if not get_scan_by_id(scan_id):
+        raise HTTPException(status_code=404, detail="Скан не найден")
+    return {"suggestions": build_suggestions(scan_id)}
+
+
+@router.get("/findings")
+async def audit_findings(scan_id: str):
+    """Сводная таблица находок по всем завершённым задачам аудита скана (A6)."""
+    if not get_scan_by_id(scan_id):
+        raise HTTPException(status_code=404, detail="Скан не найден")
+
+    sev_order = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+    rows: list[dict] = []
+    tasks = get_audit_findings(scan_id)
+    for task in tasks:
+        try:
+            findings = json.loads(task.get("findings") or "[]")
+        except ValueError:
+            findings = []
+        for f in findings:
+            rows.append({
+                "severity": f.get("severity", "info"),
+                "title": f.get("title", ""),
+                "detail": f.get("detail", ""),
+                "source": f.get("source") or task.get("tool_id"),
+                "host": f.get("host") or task.get("target", ""),
+                "port": f.get("port", ""),
+                "task_id": task.get("task_id"),
+                "target": task.get("target"),
+            })
+    rows.sort(key=lambda r: -sev_order.get(r["severity"], 0))
+
+    by_severity: dict[str, int] = {}
+    for r in rows:
+        by_severity[r["severity"]] = by_severity.get(r["severity"], 0) + 1
+
+    return {
+        "findings": rows,
+        "by_severity": by_severity,
+        "tasks_total": len(tasks),
+    }
 
 
 @router.get("/task/{task_id}")
