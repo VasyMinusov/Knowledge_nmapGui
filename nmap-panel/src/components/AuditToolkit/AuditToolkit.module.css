@@ -205,3 +205,50 @@
 .dlLink {
   color: var(--color-accent-neon);
 }
+
+/* B4: сайдбар фаз PTES + контент */
+.layout {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.side {
+  border: 1px solid var(--pip-border-dim, var(--color-border-default));
+  padding: 8px 0;
+  position: sticky;
+  top: 0;
+}
+
+.sideTitle {
+  padding: 4px 12px 8px;
+  font-size: var(--pip-fs-sm, 12px);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--pip-fg-dim, var(--color-text-muted));
+  border-bottom: 1px solid var(--pip-border-dim, var(--color-border-default));
+  margin-bottom: 4px;
+}
+
+.sideHint {
+  padding: 8px 12px;
+  font-size: var(--pip-fs-sm, 12px);
+  color: var(--pip-fg-dim, var(--color-text-muted));
+  border-top: 1px solid var(--pip-border-dim, var(--color-border-default));
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.content {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    position: static;
+  }
+}

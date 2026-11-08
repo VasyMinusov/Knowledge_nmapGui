@@ -1,0 +1,42 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--pip-border);
+  background: var(--pip-bg);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--pip-fg);
+  text-shadow: var(--pip-glow-dim);
+  margin-bottom: 16px;
+}
+
+.brand {
+  color: var(--pip-fg);
+}
+
+/* Мигающая точка статуса (1s, как курсор терминала) */
+.dot {
+  animation: pip-blink 1s steps(1, end) infinite;
+}
+
+@keyframes pip-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.sep {
+  color: var(--pip-fg-dim);
+}
+
+.item {
+  color: var(--pip-fg-dim);
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}

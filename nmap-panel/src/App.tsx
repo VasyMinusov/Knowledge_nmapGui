@@ -3,17 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   BackgroundEffects,
   ToastStack,
-  GlitchText,
   NeonButton,
   IndustrialCard,
+  MenuItem,
 } from '@/components_kit';
-import {
-  VscServer,
-  VscHistory,
-  VscSettings,
-  VscClockface,
-  VscBook,
-} from 'react-icons/vsc';
+import { StatusBar } from './components/StatusBar/StatusBar';
 import type { Toast } from '@/components_kit/ToastNotification/ToastNotification.types';
 import { ScanConfig } from './components/ScanConfig/ScanConfig';
 import { ScanResults } from './components/ScanResults/ScanResults';
@@ -33,6 +27,7 @@ import { ScanDetailsPage } from './page/ScanDetailsPage/ScanDetailsPage';
 import { useScan } from './hooks/useScan';
 import { nmapApi, type ScanHistoryItem, type Preset, type ScanRequest, type Schedule } from './api/nmapApi';
 import { useTheme } from './context/ThemeContext';
+import './App.css';
 
 type Screen =
   | 'scan'
@@ -46,6 +41,20 @@ type Screen =
   | 'vulns'
   | 'analytics'
   | 'terminal';
+
+const MENU: { id: Screen; label: string }[] = [
+  { id: 'scan', label: 'Сканирование' },
+  { id: 'history', label: 'История' },
+  { id: 'presets', label: 'Пресеты' },
+  { id: 'schedules', label: 'Расписания' },
+  { id: 'knowledge', label: 'База знаний' },
+  { id: 'portcheck', label: 'Проверка портов' },
+  { id: 'compare', label: 'Сравнение' },
+  { id: 'explainer', label: 'Объяснитель' },
+  { id: 'vulns', label: 'Уязвимости' },
+  { id: 'analytics', label: 'Аналитика' },
+  { id: 'terminal', label: 'Терминал' },
+];
 
 const App: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -295,22 +304,14 @@ const App: React.FC = () => {
                 </div>
               )}
             </div>
-            <IndustrialCard variant="accent">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <VscServer size={20} />
-                <GlitchText text="РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ" />
-              </div>
+            <IndustrialCard variant="accent" title="РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ">
               <ScanResults status={status} loading={loading} />
             </IndustrialCard>
           </div>
         );
       case 'history':
         return (
-          <IndustrialCard variant="accent">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <VscHistory size={20} />
-              <GlitchText text="ИСТОРИЯ СКАНИРОВАНИЙ" />
-            </div>
+          <IndustrialCard variant="accent" title="ИСТОРИЯ СКАНИРОВАНИЙ">
             <HistoryList
               items={history}
               onView={handleViewHistory}
@@ -323,11 +324,7 @@ const App: React.FC = () => {
         );
       case 'presets':
         return (
-          <IndustrialCard variant="accent">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <VscSettings size={20} />
-              <GlitchText text="ПРЕСЕТЫ" />
-            </div>
+          <IndustrialCard variant="accent" title="ПРЕСЕТЫ">
             <PresetManager
               presets={presets}
               onSelect={handleSelectPreset}
@@ -339,11 +336,7 @@ const App: React.FC = () => {
         );
       case 'schedules':
         return (
-          <IndustrialCard variant="accent">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <VscClockface size={20} />
-              <GlitchText text="РАСПИСАНИЯ" />
-            </div>
+          <IndustrialCard variant="accent" title="РАСПИСАНИЯ">
             <ScheduleList
               schedules={schedules}
               onView={handleViewSchedule}
@@ -361,21 +354,13 @@ const App: React.FC = () => {
         );
       case 'knowledge':
         return (
-          <IndustrialCard variant="accent">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <VscBook size={20} />
-              <GlitchText text="БАЗА ЗНАНИЙ" />
-            </div>
+          <IndustrialCard variant="accent" title="БАЗА ЗНАНИЙ">
             <KnowledgeBase />
           </IndustrialCard>
         );
       case 'portcheck':
         return (
-          <IndustrialCard variant="accent">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <VscServer size={20} />
-              <GlitchText text="ПРОВЕРКА ПОРТОВ" />
-            </div>
+          <IndustrialCard variant="accent" title="ПРОВЕРКА ПОРТОВ">
             <PortChecker
               onCheck={handlePortCheck}
               loading={portCheckLoading}
@@ -413,42 +398,39 @@ const App: React.FC = () => {
     );
   }
 
-  // Основной интерфейс
+  const screenLabel = MENU.find((m) => m.id === screen)?.label ?? screen;
+
+  // Основной интерфейс: сайдбар-меню + статус-бар (Pip-Boy)
   return (
-    <div className="machine-party-root" style={{ minHeight: '100vh', padding: '24px' }}>
+    <div className="machine-party-root appShell">
       <BackgroundEffects />
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-          <GlitchText text="ПАНЕЛЬ NMAP" />
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <NeonButton variant="primary" onClick={toggleTheme} size="sm">
-              {theme === 'green' ? '🟢 Зелёная' : '🟡 Жёлтая'}
-            </NeonButton>
-          </div>
+      <aside className="appSide">
+        <div className="appLogo">
+          NMAP PANEL
+          <span className="appLogoSub">// pip-boy os v2.0</span>
         </div>
-
-        <div style={{ display: 'flex', gap: 12, marginBottom: 24, marginTop: 12, flexWrap: 'wrap' }}>
-          {['scan','history','presets','schedules','knowledge','portcheck','compare','explainer','vulns','analytics','terminal'].map((s) => (
-            <div key={s} style={screen === s ? { boxShadow: '0 0 20px var(--color-accent-neon)' } : {}}>
-              <NeonButton variant="primary" onClick={() => setScreen(s as Screen)}>
-                {s === 'scan' && 'Сканирование'}
-                {s === 'history' && 'История'}
-                {s === 'presets' && 'Пресеты'}
-                {s === 'schedules' && 'Расписания'}
-                {s === 'knowledge' && 'База знаний'}
-                {s === 'portcheck' && 'Проверка портов'}
-                {s === 'compare' && 'Сравнение'}
-                {s === 'explainer' && 'Объяснитель'}
-                {s === 'vulns' && 'Уязвимости'}
-                {s === 'analytics' && 'Аналитика'}
-                {s === 'terminal' && '⌘ Терминал'}
-              </NeonButton>
-            </div>
+        <nav className="appMenu">
+          {MENU.map((m, i) => (
+            <MenuItem
+              key={m.id}
+              label={m.label}
+              index={i + 1}
+              active={screen === m.id}
+              onClick={() => setScreen(m.id)}
+            />
           ))}
-        </div>
-
+        </nav>
+        <button type="button" className="appTheme" onClick={toggleTheme}>
+          [ тема: {theme === 'green' ? 'зелёная' : 'янтарная'} ]
+        </button>
+      </aside>
+      <main className="appMain">
+        <StatusBar
+          screen={screenLabel}
+          theme={theme === 'green' ? 'GREEN' : 'AMBER'}
+        />
         {renderScreen()}
-      </div>
+      </main>
 
       <PresetFormModal
         open={presetFormOpen}

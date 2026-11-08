@@ -1,10 +1,11 @@
 // src/components/AuditToolkit/AuditToolkit.tsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { IndustrialCard, IndustrialTabs, GlitchText, NeonInput, NeonSelect, NeonButton } from '@/components_kit';
+import { IndustrialCard, MenuItem, GlitchText, NeonInput, NeonSelect, NeonButton } from '@/components_kit';
 import { VscTools, VscRefresh, VscLightbulb, VscListUnordered, VscGift } from 'react-icons/vsc';
 import { auditApi, payloadsApi } from '@/api/nmapApi';
 import type {
   AuditTool,
+  AuditCategory,
   AuditSuggestion,
   AuditFindingsResponse,
   PayloadGenerateResponse,
@@ -22,7 +23,7 @@ const PAYLOAD_FORMATS = ['exe', 'elf', 'raw', 'python', 'psh', 'php', 'asp', 'as
 
 export const AuditToolkit: React.FC<AuditToolkitProps> = ({ scanId, hosts, targets }) => {
   const [tools, setTools] = useState<AuditTool[]>([]);
-  const [categories, setCategories] = useState<{ id: string; label: string }[]>([]);
+  const [categories, setCategories] = useState<AuditCategory[]>([]);
   const [loadingTools, setLoadingTools] = useState(true);
   const [toolsError, setToolsError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>('all');
@@ -70,7 +71,7 @@ export const AuditToolkit: React.FC<AuditToolkitProps> = ({ scanId, hosts, targe
       .getTools()
       .then((res) => {
         setTools(res.data.tools);
-        setCategories(res.data.categories);
+        setCategories([...res.data.categories].sort((a, b) => a.order - b.order));
       })
       .catch(() => setToolsError('Не удалось получить список инструментов. Бэкенд запущен?'))
       .finally(() => setLoadingTools(false));
@@ -102,11 +103,6 @@ export const AuditToolkit: React.FC<AuditToolkitProps> = ({ scanId, hosts, targe
     loadSuggestions();
     loadFindings();
   }, [loadSuggestions, loadFindings]);
-
-  const tabs = useMemo(
-    () => [{ id: 'all', label: 'Все' }, ...categories.map((c) => ({ id: c.id, label: c.label }))],
-    [categories],
-  );
 
   const visibleTools = tools.filter((t) => activeCat === 'all' || t.category === activeCat);
 
@@ -197,25 +193,52 @@ export const AuditToolkit: React.FC<AuditToolkitProps> = ({ scanId, hosts, targe
           </div>
         )}
 
-        <IndustrialTabs tabs={tabs} active={activeCat} onChange={setActiveCat} />
-
-        {loadingTools && <div className={styles.state}>Загрузка инструментов…</div>}
-        {toolsError && <div className={styles.stateError}>{toolsError}</div>}
-
-        {!loadingTools && !toolsError && (
-          <div className={styles.grid}>
-            {visibleTools.map((tool) => (
-              <AuditToolCard
-                key={tool.id}
-                tool={tool}
-                wordlists={wordlists}
-                disabled={tool.target_kind !== 'none' && !target.trim()}
-                running={taskList.some((t) => t.tool_id === tool.id && t.status === 'running')}
-                onRun={handleRun}
+        {/* B4: сайдбар фаз PTES слева, инструменты справа */}
+        <div className={styles.layout}>
+          <div className={styles.side}>
+            <div className={styles.sideTitle}>ФАЗЫ PTES</div>
+            <MenuItem
+              label="Все"
+              index={0}
+              active={activeCat === 'all'}
+              onClick={() => setActiveCat('all')}
+            />
+            {categories.map((c, i) => (
+              <MenuItem
+                key={c.id}
+                label={c.label}
+                icon={<span>{c.icon}</span>}
+                index={i + 1}
+                active={activeCat === c.id}
+                onClick={() => setActiveCat(c.id)}
               />
             ))}
+            {activeCat !== 'all' && (
+              <div className={styles.sideHint}>
+                {categories.find((c) => c.id === activeCat)?.phase_hint}
+              </div>
+            )}
           </div>
-        )}
+          <div className={styles.content}>
+            {loadingTools && <div className={styles.state}>Загрузка инструментов…</div>}
+            {toolsError && <div className={styles.stateError}>{toolsError}</div>}
+
+            {!loadingTools && !toolsError && (
+              <div className={styles.grid}>
+                {visibleTools.map((tool) => (
+                  <AuditToolCard
+                    key={tool.id}
+                    tool={tool}
+                    wordlists={wordlists}
+                    disabled={tool.target_kind !== 'none' && !target.trim()}
+                    running={taskList.some((t) => t.tool_id === tool.id && t.status === 'running')}
+                    onRun={handleRun}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </IndustrialCard>
 
       {/* A6: сводная таблица находок по всем задачам скана */}

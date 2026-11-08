@@ -21,6 +21,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
+import { applyPipChartDefaults, pipChartColors, pipSeriesPalette } from '@/tokens/chartTheme';
 import styles from './AnalyticsDashboard.module.css';
 
 // Регистрируем компоненты Chart.js
@@ -35,6 +36,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+applyPipChartDefaults(ChartJS); // B4: шрифт/цвета/сетка из --pip-* токенов
 
 export const AnalyticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -71,19 +73,10 @@ export const AnalyticsDashboard: React.FC = () => {
     loadData();
   }, [timelineDays]);
 
-  // Цветовая схема для графиков
-  const colors = [
-    '#66ff33',
-    '#a8e633',
-    '#ccff66',
-    '#77aa33',
-    '#ffb800',
-    '#ff6b6b',
-    '#ff5555',
-    '#3dff00',
-    '#99ff66',
-    '#b3ff66',
-  ];
+  // Цветовая схема для графиков — из pip-токенов (B4)
+  const pip = pipChartColors();
+  const colors = pipSeriesPalette(10);
+  const pipBg = '#0a0f0a';
 
   // Данные для круговой диаграммы ОС
   const osChartData = {
@@ -92,8 +85,8 @@ export const AnalyticsDashboard: React.FC = () => {
       {
         data: osDist.map((item) => item.count),
         backgroundColor: colors.slice(0, osDist.length),
-        borderColor: '#1f301f',
-        borderWidth: 2,
+        borderColor: pipBg,
+        borderWidth: 1,
       },
     ],
   };
@@ -105,9 +98,9 @@ export const AnalyticsDashboard: React.FC = () => {
       {
         label: 'Открытых портов',
         data: services.map((item) => item.count),
-        backgroundColor: 'rgba(102, 255, 51, 0.6)',
-        borderColor: '#66ff33',
-        borderWidth: 2,
+        backgroundColor: pip.fgGhost,
+        borderColor: pip.fg,
+        borderWidth: 1,
       },
     ],
   };
@@ -119,9 +112,9 @@ export const AnalyticsDashboard: React.FC = () => {
       {
         label: 'Количество вхождений',
         data: topPorts.map((item) => item.count),
-        backgroundColor: 'rgba(255, 184, 0, 0.6)',
-        borderColor: '#ffb800',
-        borderWidth: 2,
+        backgroundColor: pip.fgGhost,
+        borderColor: pip.fg,
+        borderWidth: 1,
       },
     ],
   };
@@ -133,24 +126,27 @@ export const AnalyticsDashboard: React.FC = () => {
       {
         label: 'Хосты',
         data: timeline.map((item) => item.hosts),
-        borderColor: '#66ff33',
-        backgroundColor: 'rgba(102, 255, 51, 0.1)',
+        borderColor: pip.fg,
+        backgroundColor: pip.fgGhost,
         fill: true,
-        tension: 0.3,
-        pointBackgroundColor: '#66ff33',
-        pointBorderColor: '#1f301f',
-        pointBorderWidth: 2,
+        tension: 0,               // Pip-Boy: ломаные, без сглаживания
+        pointBackgroundColor: pip.fg,
+        pointBorderColor: pipBg,
+        pointBorderWidth: 1,
+        pointRadius: 2,
       },
       {
         label: 'Открытые порты',
         data: timeline.map((item) => item.ports),
-        borderColor: '#ffb800',
-        backgroundColor: 'rgba(255, 184, 0, 0.1)',
-        fill: true,
-        tension: 0.3,
-        pointBackgroundColor: '#ffb800',
-        pointBorderColor: '#1f301f',
-        pointBorderWidth: 2,
+        borderColor: pip.warning,
+        backgroundColor: 'transparent',
+        fill: false,
+        tension: 0,
+        borderDash: [4, 3],       // вторая серия — пунктиром
+        pointBackgroundColor: pip.warning,
+        pointBorderColor: pipBg,
+        pointBorderWidth: 1,
+        pointRadius: 2,
       },
     ],
   };
@@ -161,19 +157,19 @@ export const AnalyticsDashboard: React.FC = () => {
     plugins: {
       legend: {
         labels: {
-          color: '#ccff66',
-          font: { family: 'Courier New, monospace' },
+          color: pip.fg,
+          font: { family: "'Share Tech Mono', 'Courier New', monospace" },
         },
       },
     },
     scales: {
       x: {
-        ticks: { color: '#77aa33', font: { family: 'Courier New, monospace' } },
-        grid: { color: 'rgba(102, 255, 51, 0.1)' },
+        ticks: { color: pip.fgDim, font: { family: "'Share Tech Mono', 'Courier New', monospace" } },
+        grid: { color: pip.fgGhost },
       },
       y: {
-        ticks: { color: '#77aa33', font: { family: 'Courier New, monospace' } },
-        grid: { color: 'rgba(102, 255, 51, 0.1)' },
+        ticks: { color: pip.fgDim, font: { family: "'Share Tech Mono', 'Courier New', monospace" } },
+        grid: { color: pip.fgGhost },
         beginAtZero: true,
       },
     },
@@ -186,8 +182,8 @@ export const AnalyticsDashboard: React.FC = () => {
       legend: {
         position: 'right' as const,
         labels: {
-          color: '#ccff66',
-          font: { family: 'Courier New, monospace', size: 10 },
+          color: pip.fg,
+          font: { family: "'Share Tech Mono', 'Courier New', monospace", size: 10 },
           boxWidth: 12,
           padding: 8,
         },
@@ -201,19 +197,19 @@ export const AnalyticsDashboard: React.FC = () => {
     plugins: {
       legend: {
         labels: {
-          color: '#ccff66',
-          font: { family: 'Courier New, monospace' },
+          color: pip.fg,
+          font: { family: "'Share Tech Mono', 'Courier New', monospace" },
         },
       },
     },
     scales: {
       x: {
-        ticks: { color: '#77aa33', font: { family: 'Courier New, monospace', size: 9 } },
-        grid: { color: 'rgba(102, 255, 51, 0.1)' },
+        ticks: { color: pip.fgDim, font: { family: "'Share Tech Mono', 'Courier New', monospace", size: 9 } },
+        grid: { color: pip.fgGhost },
       },
       y: {
-        ticks: { color: '#77aa33', font: { family: 'Courier New, monospace' } },
-        grid: { color: 'rgba(102, 255, 51, 0.1)' },
+        ticks: { color: pip.fgDim, font: { family: "'Share Tech Mono', 'Courier New', monospace" } },
+        grid: { color: pip.fgGhost },
         beginAtZero: true,
       },
     },

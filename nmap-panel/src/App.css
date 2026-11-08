@@ -1,0 +1,82 @@
+/* B4 — Pip-Boy layout: сайдбар слева, контент справа */
+
+.appShell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
+}
+
+.appSide {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--pip-border);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.appLogo {
+  padding: 0 16px 16px;
+  border-bottom: 1px solid var(--pip-border);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-xl);
+  letter-spacing: 2px;
+  color: var(--pip-fg);
+  text-shadow: var(--pip-glow);
+  line-height: 1.2;
+}
+
+.appLogoSub {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--pip-fs-sm);
+  letter-spacing: 1px;
+  color: var(--pip-fg-dim);
+  text-shadow: none;
+}
+
+.appMenu {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.appTheme {
+  margin: 8px 12px 0;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--pip-border-dim);
+  color: var(--pip-fg-dim);
+  font-family: var(--pip-font);
+  font-size: var(--pip-fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.appTheme:hover {
+  background: var(--pip-invert-bg);
+  color: var(--pip-invert-fg);
+}
+
+.appMain {
+  padding: 16px 24px 24px;
+  min-width: 0;
+}
+
+/* Узкие экраны: сайдбар уходит наверх */
+@media (max-width: 900px) {
+  .appShell {
+    grid-template-columns: 1fr;
+  }
+  .appSide {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--pip-border);
+  }
+}
